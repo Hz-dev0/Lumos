@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lumos</title>
+<meta name="theme-color" content="#EEEAE3">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Lumos">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.png">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -49,8 +55,9 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 /* TABS */
 .tab-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end;padding:0;border-bottom:none;margin-bottom:0}
-.tab{font-size:13px;padding:6px 16px;border-radius:999px;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;transition:all .15s;user-select:none;box-shadow:var(--sh)}
+.tab{font-size:13px;padding:6px 16px;border-radius:999px;border:1.5px solid var(--border);background:var(--surface);color:var(--muted);cursor:pointer;transition:border-color .15s,color .15s,background .15s,box-shadow .15s;user-select:none;box-shadow:var(--sh)}
 .tab:hover{border-color:var(--bmd);color:var(--text);background:var(--s2)}
+.tab:active{background:var(--s2);color:var(--text)}
 .tab.active{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:var(--sh2)}
 .tab.drag-over{outline:2px dashed var(--bmd);outline-offset:2px}
 .tab-add{font-size:13px;padding:6px 13px;border-radius:999px;border:1.5px dashed var(--bmd);background:transparent;color:var(--faint);cursor:pointer;transition:all .15s;white-space:nowrap}
@@ -65,12 +72,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .cat-add-btn:hover{background:var(--surface);color:var(--text);border-color:var(--muted)}
 
 /* GROUP */
-.group{margin-bottom:2.5rem;animation:fadeUp .22s both;display:flex;gap:16px;align-items:flex-start}
-.group-header{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:grab;user-select:none;padding-top:4px;min-width:28px;width:28px;flex-shrink:0}
+.group{margin-bottom:2.5rem;animation:fadeUp .22s both;display:flex;gap:16px;align-items:stretch}
+.group-header{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:grab;user-select:none;min-width:28px;width:28px;flex-shrink:0}
 .group-header:active{cursor:grabbing}
-.group-label{font-size:10.5px;font-weight:500;color:var(--faint);letter-spacing:.04em;font-family:var(--font);writing-mode:vertical-lr;text-orientation:upright;line-height:1.2}
+.group-label{font-size:10.5px;font-weight:500;color:var(--muted);letter-spacing:.04em;font-family:var(--font);writing-mode:vertical-lr;text-orientation:upright;line-height:1.2;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 4px;transition:background .15s,color .15s;flex:1;display:flex;align-items:center;justify-content:center}
+.group-label:hover{background:var(--s2);color:var(--text)}
 .group-count{font-size:9.5px;color:var(--faint);background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:2px 5px;writing-mode:horizontal-tb}
-.group-drag-hint{font-size:8px;color:var(--faint);opacity:0;transition:opacity .15s;font-family:var(--mono);writing-mode:vertical-lr;text-orientation:upright}
+.group-drag-hint{font-size:9px;color:var(--faint);opacity:0;transition:opacity .15s;font-family:var(--mono);writing-mode:vertical-lr;letter-spacing:.08em}
 .group-header:hover .group-drag-hint{opacity:1}
 .group-body{flex:1;min-width:0}
 .sep-row{display:flex;align-items:center;gap:12px;margin:2rem 0 2.5rem}
@@ -83,12 +91,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 /* CARD */
 .card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:15px 13px 13px;display:flex;flex-direction:column;align-items:flex-start;gap:8px;cursor:pointer;text-decoration:none;transition:border-color .18s,box-shadow .18s,transform .15s,opacity .15s;user-select:none;box-shadow:var(--sh);position:relative;overflow:hidden}
-.card::after{content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;background:linear-gradient(105deg,transparent 20%,rgba(255,255,255,.55) 50%,transparent 80%);transform:skewX(-15deg);transition:none;pointer-events:none}
 .card:hover{border-color:var(--bmd);box-shadow:var(--sh2);transform:translateY(-1px)}
-.card:hover::after {
-  animation: shimmer 1.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;}
-@keyframes shimmer {  0% {    left: -150%;      /* 讓起點稍微退後一點 */  }
-  100% {    left: 100%;       /* 剛好滑到卡片最右邊切齊，不浪費時間跑去外面 */  }}
 .card.dragging{opacity:.3;transform:scale(.97)}
 .card.drag-over{outline:2px dashed var(--bmd);outline-offset:2px}
 .card-icon{min-width:36px;width:auto;height:24px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;padding:0 9px;font-size:11px;font-weight:600;font-family:var(--mono);flex-shrink:0;letter-spacing:.03em;white-space:nowrap}
@@ -519,14 +522,22 @@ function renderContent(tabId,cats,noteText){
       const hdr=document.createElement("div"); hdr.className="group-header";
       const lbl=document.createElement("div"); lbl.className="group-label"; lbl.textContent=cat.name;
       const cnt=document.createElement("div"); cnt.className="group-count"; cnt.textContent=cat.links.length;
-      const hint=document.createElement("div"); hint.className="group-drag-hint"; hint.textContent="drag";
+      const hint=document.createElement("div"); hint.className="group-drag-hint"; hint.textContent="::";
       hdr.appendChild(lbl); hdr.appendChild(cnt); hdr.appendChild(hint);
+
+      // apply stored label color
+      if(cat.labelColor){
+        lbl.style.background=cat.labelColor.bg;
+        lbl.style.color=cat.labelColor.tc;
+        lbl.style.borderColor=cat.labelColor.bg;
+      }
 
       bindCtx(lbl,()=>[
         {label:"更名",fn:async()=>{
           const n=prompt("新名稱",cat.name);
           if(n&&n.trim()){await updateDoc(doc(db,"tabs",tabId,"categories",cat.id),{name:n.trim()});loadContent(tabId);}
         }},
+        {label:"選擇顏色",fn:()=>openCatColorPicker(tabId,cat,lbl)},
         {label:"刪除分類",danger:true,fn:async()=>{
           if(confirm("刪除分類「"+cat.name+"」？")){
             await deleteDoc(doc(db,"tabs",tabId,"categories",cat.id));loadContent(tabId);
@@ -612,6 +623,47 @@ function renderContent(tabId,cats,noteText){
 
   noteSection.appendChild(noteToggle); noteSection.appendChild(noteBody);
   c_.appendChild(noteSection);
+}
+
+// ── CAT COLOR PICKER ──
+const CAT_COLORS=[
+  {bg:"#F0EDE8",tc:"#6B6760"}, // 預設（淡米）
+  {bg:"#E6F1FB",tc:"#0C447C"}, // 藍
+  {bg:"#EEEDFE",tc:"#3C3489"}, // 紫
+  {bg:"#E1F5EE",tc:"#085041"}, // 綠
+  {bg:"#FAECE7",tc:"#712B13"}, // 橘
+  {bg:"#FBEAF0",tc:"#72243E"}, // 粉
+  {bg:"#FAEEDA",tc:"#633806"}, // 黃
+  {bg:"#EAF3DE",tc:"#27500A"}, // 草綠
+  {bg:"#FCEBEB",tc:"#791F1F"}, // 紅
+];
+function openCatColorPicker(tabId,cat,lblEl){
+  // build small inline popup
+  let pop=document.createElement("div");
+  pop.style.cssText="position:fixed;background:var(--surface);border:1.5px solid var(--bmd);border-radius:12px;padding:10px 12px;z-index:600;box-shadow:0 8px 32px rgba(0,0,0,.13);display:flex;gap:7px;flex-wrap:wrap;width:172px;animation:fadeUp .12s both";
+  CAT_COLORS.forEach(c=>{
+    const sw=document.createElement("div");
+    sw.style.cssText=`width:22px;height:22px;border-radius:50%;cursor:pointer;background:${c.bg};border:2px solid ${c.bg};transition:transform .12s,border-color .12s;flex-shrink:0`;
+    if(cat.labelColor&&cat.labelColor.bg===c.bg) sw.style.borderColor=c.tc;
+    sw.addEventListener("mouseenter",()=>sw.style.transform="scale(1.2)");
+    sw.addEventListener("mouseleave",()=>sw.style.transform="scale(1)");
+    sw.addEventListener("mousedown",async e=>{
+      e.stopPropagation();
+      cat.labelColor=c;
+      await updateDoc(doc(db,"tabs",tabId,"categories",cat.id),{labelColor:c});
+      lblEl.style.background=c.bg; lblEl.style.color=c.tc; lblEl.style.borderColor=c.bg;
+      pop.remove();
+    });
+    pop.appendChild(sw);
+  });
+  document.body.appendChild(pop);
+  const r=lblEl.getBoundingClientRect();
+  pop.style.left=Math.min(r.right+8,innerWidth-180)+"px";
+  pop.style.top=Math.max(r.top,8)+"px";
+  setTimeout(()=>{
+    const close=()=>{pop.remove();};
+    document.addEventListener("mousedown",close,{once:true});
+  },80);
 }
 
 function buildCard(lk,tabId,catId){
@@ -723,6 +775,13 @@ document.getElementById("ml-save").addEventListener("click",async()=>{
 function showToast(msg){
   const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show");
   setTimeout(()=>t.classList.remove("show"),2000);
+}
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW error:',e));
+  });
 }
 </script>
 </body>
