@@ -285,6 +285,32 @@
     20%,60% { transform: translateX(-6px); }
     40%,80% { transform: translateX(6px); }
   }
+
+  /* context menu */
+  .ctx-menu {
+    position: fixed;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 5px;
+    z-index: 400;
+    min-width: 130px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+    animation: fadeUp 0.15s ease both;
+  }
+  .ctx-item {
+    padding: 9px 14px;
+    font-size: 13px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--text);
+    transition: background 0.1s;
+    font-family: var(--font);
+    white-space: nowrap;
+  }
+  .ctx-item:hover { background: var(--pill-hover); }
+  .ctx-item.danger { color: #e24b4a; }
+  .ctx-item.danger:hover { background: #fcebeb; }
 </style>
 </head>
 <body>
@@ -306,7 +332,6 @@
   <div class="topbar">
     <div class="logo">LUMOS</div>
     <div class="topbar-actions">
-      <div class="icon-btn" id="btn-edit" title="編輯模式">✎</div>
       <div class="icon-btn" id="btn-add-group" title="新增分組">⊞</div>
     </div>
   </div>
@@ -475,60 +500,86 @@ async function loadContent(tabId) {
   renderContent(tabId, all);
 }
 
+// ── CONTEXT MENU ──
+let ctxMenu = null;
+function showCtxMenu(x, y, items) {
+  removeCtxMenu();
+  ctxMenu = document.createElement("div");
+  ctxMenu.className = "ctx-menu";
+  items.forEach(item => {
+    const el = document.createElement("div");
+    el.className = "ctx-item" + (item.danger ? " danger" : "");
+    el.textContent = item.label;
+    el.addEventListener("click", () => { removeCtxMenu(); item.action(); });
+    ctxMenu.appendChild(el);
+  });
+  document.body.appendChild(ctxMenu);
+  const rect = ctxMenu.getBoundingClientRect();
+  const safeX = Math.min(x, window.innerWidth - rect.width - 8);
+  const safeY = Math.min(y, window.innerHeight - rect.height - 8);
+  ctxMenu.style.left = safeX + "px";
+  ctxMenu.style.top = safeY + "px";
+  setTimeout(() => document.addEventListener("click", removeCtxMenu, { once: true }), 0);
+}
+function removeCtxMenu() {
+  if (ctxMenu) { ctxMenu.remove(); ctxMenu = null; }
+}
+
+function addLongPress(el, onLongPress) {
+  let timer = null;
+  const start = e => {
+    timer = setTimeout(() => { timer = null; onLongPress(e); }, 500);
+  };
+  const cancel = () => { if (timer) { clearTimeout(timer); timer = null; } };
+  const tap = e => { if (timer === null && e.type === "click") e.stopImmediatePropagation(); };
+  el.addEventListener("mousedown", start);
+  el.addEventListener("touchstart", start, { passive: true });
+  el.addEventListener("mouseup", cancel);
+  el.addEventListener("mouseleave", cancel);
+  el.addEventListener("touchend", cancel);
+  el.addEventListener("touchcancel", cancel);
+}
+
 // ── RENDER ──
 function renderTabs() {
   const row = document.getElementById("tab-row");
   row.innerHTML = "";
   tabs.forEach(t => {
-    if (editMode) {
-      const wrap = document.createElement("div");
-      wrap.style.cssText = "display:flex;align-items:center;gap:3px;padding-bottom:10px;margin-bottom:-1px;border-bottom:1.5px solid " + (t.id === activeTabId ? "var(--tab-active)" : "transparent");
+    const el = document.createElement("div");
+    el.className = "tab" + (t.id === activeTabId ? " active" : "");
+    el.textContent = t.name;
+    el.addEventListener("click", () => { activeTabId = t.id; renderTabs(); loadContent(t.id); });
 
-      const el = document.createElement("div");
-      el.style.cssText = "font-size:13px;color:" + (t.id === activeTabId ? "var(--tab-active)" : "var(--tab-inactive)") + ";cursor:pointer;white-space:nowrap;";
-      el.textContent = t.name;
-      el.addEventListener("click", () => { activeTabId = t.id; renderTabs(); loadContent(t.id); });
-
-      const renBtn = document.createElement("button");
-      renBtn.className = "small-btn";
-      renBtn.title = "改名";
-      renBtn.textContent = "✎";
-      renBtn.style.cssText = "font-size:12px;padding:1px 5px;";
-      renBtn.addEventListener("click", async e => {
-        e.stopPropagation();
-        const name = prompt("新分頁名稱", t.name);
-        if (name && name.trim()) {
-          await updateDoc(doc(db, "tabs", t.id), { name: name.trim() });
-          await loadAll();
+    addLongPress(el, e => {
+      const x = (e.touches ? e.touches[0].clientX : e.clientX) || el.getBoundingClientRect().left;
+      const y = el.getBoundingClientRect().bottom + 4;
+      showCtxMenu(x, y, [
+        {
+          label: "更名",
+          action: async () => {
+            const name = prompt("新分頁名稱", t.name);
+            if (name && name.trim()) {
+              await updateDoc(doc(db, "tabs", t.id), { name: name.trim() });
+              await loadAll();
+            }
+          }
+        },
+        {
+          label: "刪除",
+          danger: true,
+          action: async () => {
+            if (confirm(`刪除分頁「${t.name}」？（分頁內所有資料都會刪除）`)) {
+              await deleteDoc(doc(db, "tabs", t.id));
+              tabs = tabs.filter(x => x.id !== t.id);
+              if (activeTabId === t.id) activeTabId = tabs[0]?.id || null;
+              await loadAll();
+            }
+          }
         }
-      });
+      ]);
+    });
 
-      const delBtn = document.createElement("button");
-      delBtn.className = "small-btn";
-      delBtn.title = "刪除";
-      delBtn.textContent = "×";
-      delBtn.style.cssText = "font-size:14px;padding:1px 5px;color:#e24b4a;";
-      delBtn.addEventListener("click", async e => {
-        e.stopPropagation();
-        if (confirm(`刪除分頁「${t.name}」？（分頁內所有資料都會刪除）`)) {
-          await deleteDoc(doc(db, "tabs", t.id));
-          tabs = tabs.filter(x => x.id !== t.id);
-          if (activeTabId === t.id) activeTabId = tabs[0]?.id || null;
-          await loadAll();
-        }
-      });
-
-      wrap.appendChild(el);
-      wrap.appendChild(renBtn);
-      wrap.appendChild(delBtn);
-      row.appendChild(wrap);
-    } else {
-      const el = document.createElement("div");
-      el.className = "tab" + (t.id === activeTabId ? " active" : "");
-      el.textContent = t.name;
-      el.addEventListener("click", () => { activeTabId = t.id; renderTabs(); loadContent(t.id); });
-      row.appendChild(el);
-    }
+    row.appendChild(el);
   });
   const addTab = document.createElement("div");
   addTab.className = "tab-add";
@@ -694,14 +745,6 @@ document.getElementById("mg-save").addEventListener("click", async () => {
   closeModal("modal-group");
   loadContent(pendingGroupTabId);
   showToast("分組已新增");
-});
-
-// Edit toggle
-document.getElementById("btn-edit").addEventListener("click", () => {
-  editMode = !editMode;
-  document.getElementById("btn-edit").classList.toggle("active", editMode);
-  if (activeTabId) loadContent(activeTabId);
-  renderTabs();
 });
 
 // Link modal
