@@ -396,7 +396,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/fireba
 import {
   getFirestore, collection, doc,
   getDocs, addDoc, deleteDoc, updateDoc,
-  query, orderBy, writeBatch, serverTimestamp
+  query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -407,26 +407,19 @@ const firebaseConfig = {
   messagingSenderId: "914721288327",
   appId: "1:914721288327:web:6539b1770c23f007858822"
 };
-
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
 const PASSWORD_HASH = "bda94d3dce78637e7e47c7ea19824b93a643d023947dbf12ab3afc7032bb2597";
-
 const COLORS = [
-  { bg: "#E6F1FB", text: "#0C447C" },
-  { bg: "#EEEDFE", text: "#3C3489" },
-  { bg: "#E1F5EE", text: "#085041" },
-  { bg: "#FAECE7", text: "#712B13" },
-  { bg: "#FBEAF0", text: "#72243E" },
-  { bg: "#FAEEDA", text: "#633806" },
-  { bg: "#EAF3DE", text: "#27500A" },
-  { bg: "#FCEBEB", text: "#791F1F" },
-  { bg: "#F1EFE8", text: "#444441" },
+  { bg:"#E6F1FB", text:"#0C447C" }, { bg:"#EEEDFE", text:"#3C3489" },
+  { bg:"#E1F5EE", text:"#085041" }, { bg:"#FAECE7", text:"#712B13" },
+  { bg:"#FBEAF0", text:"#72243E" }, { bg:"#FAEEDA", text:"#633806" },
+  { bg:"#EAF3DE", text:"#27500A" }, { bg:"#FCEBEB", text:"#791F1F" },
+  { bg:"#F1EFE8", text:"#444441" },
 ];
 
 let selectedColor = COLORS[0];
-let editMode = false;
 let activeTabId = null;
 let tabs = [];
 let pendingGroupTabId = null;
@@ -436,211 +429,206 @@ let pendingLinkId = null;
 // ── AUTH ──
 async function hashStr(str) {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join("");
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
 }
-
-function checkSession() {
-  return sessionStorage.getItem("lumos_auth") === "1";
-}
-
+function checkSession() { return sessionStorage.getItem("lumos_auth") === "1"; }
 async function tryLogin() {
   const val = document.getElementById("pwd-input").value;
-  const hash = await hashStr(val);
-  if (hash === PASSWORD_HASH) {
-    sessionStorage.setItem("lumos_auth", "1");
+  if (await hashStr(val) === PASSWORD_HASH) {
+    sessionStorage.setItem("lumos_auth","1");
     const ls = document.getElementById("login-screen");
     ls.classList.add("fade-out");
-    setTimeout(() => { ls.style.display = "none"; }, 400);
+    setTimeout(() => { ls.style.display="none"; }, 400);
     document.getElementById("app").classList.add("visible");
     loadAll();
   } else {
     const inp = document.getElementById("pwd-input");
     inp.classList.add("error");
     document.getElementById("login-hint").textContent = "密碼錯誤";
-    setTimeout(() => { inp.classList.remove("error"); inp.value = ""; }, 600);
+    setTimeout(() => { inp.classList.remove("error"); inp.value=""; }, 600);
   }
 }
-
 document.getElementById("pwd-submit").addEventListener("click", tryLogin);
-document.getElementById("pwd-input").addEventListener("keydown", e => { if (e.key === "Enter") tryLogin(); });
-
+document.getElementById("pwd-input").addEventListener("keydown", e => { if(e.key==="Enter") tryLogin(); });
 if (checkSession()) {
   document.getElementById("login-screen").style.display = "none";
   document.getElementById("app").classList.add("visible");
   loadAll();
 }
 
+// ── CONTEXT MENU ──
+// Uses native contextmenu event (right-click on desktop, long-press on mobile).
+// Menu is removed only when user clicks an item or clicks outside.
+let ctxEl = null;
+
+function showCtxMenu(x, y, items) {
+  removeCtxMenu();
+  ctxEl = document.createElement("div");
+  ctxEl.className = "ctx-menu";
+  // Prevent the document click that immediately follows from closing the menu
+  ctxEl.addEventListener("mousedown", e => e.stopPropagation());
+  ctxEl.addEventListener("touchstart", e => e.stopPropagation(), {passive:true});
+
+  items.forEach(item => {
+    const el = document.createElement("div");
+    el.className = "ctx-item" + (item.danger ? " danger" : "");
+    el.textContent = item.label;
+    el.addEventListener("mousedown", e => {
+      e.stopPropagation();
+      removeCtxMenu();
+      item.action();
+    });
+    ctxEl.appendChild(el);
+  });
+
+  ctxEl.style.left = "0px";
+  ctxEl.style.top = "0px";
+  document.body.appendChild(ctxEl);
+
+  // Position after paint so we know the menu size
+  requestAnimationFrame(() => {
+    const mw = ctxEl.offsetWidth;
+    const mh = ctxEl.offsetHeight;
+    const safeX = Math.min(x, window.innerWidth - mw - 8);
+    const safeY = Math.min(y, window.innerHeight - mh - 8);
+    ctxEl.style.left = safeX + "px";
+    ctxEl.style.top  = safeY + "px";
+  });
+
+  // Close when clicking/touching anywhere outside
+  setTimeout(() => {
+    document.addEventListener("mousedown", removeCtxMenu, {once:true});
+    document.addEventListener("touchstart", removeCtxMenu, {once:true, passive:true});
+  }, 50);
+}
+
+function removeCtxMenu() {
+  if (ctxEl) { ctxEl.remove(); ctxEl = null; }
+}
+
+function attachCtxMenu(el, itemsFn) {
+  // Desktop: right-click
+  el.addEventListener("contextmenu", e => {
+    e.preventDefault();
+    showCtxMenu(e.clientX, e.clientY, itemsFn());
+  });
+
+  // Mobile / touch: long-press (600ms)
+  let touchTimer = null;
+  el.addEventListener("touchstart", e => {
+    touchTimer = setTimeout(() => {
+      touchTimer = null;
+      const t = e.touches[0];
+      showCtxMenu(t.clientX, t.clientY, itemsFn());
+    }, 600);
+  }, {passive:true});
+  el.addEventListener("touchend",    () => { if(touchTimer){clearTimeout(touchTimer);touchTimer=null;} });
+  el.addEventListener("touchcancel", () => { if(touchTimer){clearTimeout(touchTimer);touchTimer=null;} });
+  el.addEventListener("touchmove",   () => { if(touchTimer){clearTimeout(touchTimer);touchTimer=null;} });
+}
+
 // ── DATA ──
 async function loadAll() {
-  const tabSnap = await getDocs(query(collection(db, "tabs"), orderBy("order")));
-  tabs = tabSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-
+  const snap = await getDocs(query(collection(db,"tabs"), orderBy("order")));
+  tabs = snap.docs.map(d => ({id:d.id,...d.data()}));
+  if (!activeTabId || !tabs.find(t=>t.id===activeTabId))
+    activeTabId = tabs[0]?.id || null;
   renderTabs();
-  if (tabs.length === 0) {
-    document.getElementById("content").innerHTML = '<div class="empty">尚無分頁，點右上角 ⊞ 新增分組，或先新增分頁。</div>';
+  if (!activeTabId) {
+    document.getElementById("content").innerHTML = '<div class="empty">尚無分頁，點分頁列右側 + 新增。</div>';
     return;
   }
-  if (!activeTabId || !tabs.find(t => t.id === activeTabId)) {
-    activeTabId = tabs[0].id;
-  }
-  renderTabs();
   loadContent(activeTabId);
 }
 
 async function loadContent(tabId) {
   document.getElementById("content").innerHTML = '<div class="loader">loading…</div>';
-  const groupSnap = await getDocs(query(collection(db, "tabs", tabId, "groups"), orderBy("order")));
-  const groups = groupSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-
+  const gSnap = await getDocs(query(collection(db,"tabs",tabId,"groups"), orderBy("order")));
+  const groups = gSnap.docs.map(d=>({id:d.id,...d.data()}));
   const all = await Promise.all(groups.map(async g => {
-    const linkSnap = await getDocs(query(collection(db, "tabs", tabId, "groups", g.id, "links"), orderBy("order")));
-    return { ...g, links: linkSnap.docs.map(d => ({ id: d.id, ...d.data() })) };
+    const lSnap = await getDocs(query(collection(db,"tabs",tabId,"groups",g.id,"links"), orderBy("order")));
+    return {...g, links:lSnap.docs.map(d=>({id:d.id,...d.data()}))};
   }));
-
   renderContent(tabId, all);
 }
 
-// ── CONTEXT MENU ──
-let ctxMenu = null;
-function showCtxMenu(x, y, items) {
-  removeCtxMenu();
-  ctxMenu = document.createElement("div");
-  ctxMenu.className = "ctx-menu";
-  items.forEach(item => {
-    const el = document.createElement("div");
-    el.className = "ctx-item" + (item.danger ? " danger" : "");
-    el.textContent = item.label;
-    el.addEventListener("click", () => { removeCtxMenu(); item.action(); });
-    ctxMenu.appendChild(el);
-  });
-  document.body.appendChild(ctxMenu);
-  const rect = ctxMenu.getBoundingClientRect();
-  const safeX = Math.min(x, window.innerWidth - rect.width - 8);
-  const safeY = Math.min(y, window.innerHeight - rect.height - 8);
-  ctxMenu.style.left = safeX + "px";
-  ctxMenu.style.top = safeY + "px";
-  setTimeout(() => document.addEventListener("click", removeCtxMenu, { once: true }), 0);
-}
-function removeCtxMenu() {
-  if (ctxMenu) { ctxMenu.remove(); ctxMenu = null; }
-}
-
-function addLongPress(el, onLongPress) {
-  let timer = null;
-  const start = e => {
-    timer = setTimeout(() => { timer = null; onLongPress(e); }, 500);
-  };
-  const cancel = () => { if (timer) { clearTimeout(timer); timer = null; } };
-  const tap = e => { if (timer === null && e.type === "click") e.stopImmediatePropagation(); };
-  el.addEventListener("mousedown", start);
-  el.addEventListener("touchstart", start, { passive: true });
-  el.addEventListener("mouseup", cancel);
-  el.addEventListener("mouseleave", cancel);
-  el.addEventListener("touchend", cancel);
-  el.addEventListener("touchcancel", cancel);
-}
-
-// ── RENDER ──
+// ── RENDER TABS ──
 function renderTabs() {
   const row = document.getElementById("tab-row");
   row.innerHTML = "";
   tabs.forEach(t => {
     const el = document.createElement("div");
-    el.className = "tab" + (t.id === activeTabId ? " active" : "");
+    el.className = "tab" + (t.id===activeTabId ? " active" : "");
     el.textContent = t.name;
-    el.addEventListener("click", () => { activeTabId = t.id; renderTabs(); loadContent(t.id); });
+    el.addEventListener("click", () => { activeTabId=t.id; renderTabs(); loadContent(t.id); });
 
-    addLongPress(el, e => {
-      const x = (e.touches ? e.touches[0].clientX : e.clientX) || el.getBoundingClientRect().left;
-      const y = el.getBoundingClientRect().bottom + 4;
-      showCtxMenu(x, y, [
-        {
-          label: "更名",
-          action: async () => {
-            const name = prompt("新分頁名稱", t.name);
-            if (name && name.trim()) {
-              await updateDoc(doc(db, "tabs", t.id), { name: name.trim() });
-              await loadAll();
-            }
-          }
-        },
-        {
-          label: "刪除",
-          danger: true,
-          action: async () => {
-            if (confirm(`刪除分頁「${t.name}」？（分頁內所有資料都會刪除）`)) {
-              await deleteDoc(doc(db, "tabs", t.id));
-              tabs = tabs.filter(x => x.id !== t.id);
-              if (activeTabId === t.id) activeTabId = tabs[0]?.id || null;
-              await loadAll();
-            }
+    attachCtxMenu(el, () => [
+      { label:"更名", action: async () => {
+          const name = prompt("新分頁名稱", t.name);
+          if (name && name.trim()) {
+            await updateDoc(doc(db,"tabs",t.id), {name:name.trim()});
+            await loadAll();
           }
         }
-      ]);
-    });
+      },
+      { label:"刪除分頁", danger:true, action: async () => {
+          if (confirm("刪除分頁「"+t.name+"」？（分頁內所有資料都會刪除）")) {
+            await deleteDoc(doc(db,"tabs",t.id));
+            tabs = tabs.filter(x=>x.id!==t.id);
+            if (activeTabId===t.id) activeTabId = tabs[0]?.id||null;
+            await loadAll();
+          }
+        }
+      }
+    ]);
 
     row.appendChild(el);
   });
+
   const addTab = document.createElement("div");
   addTab.className = "tab-add";
   addTab.textContent = "+";
-  addTab.title = "新增分頁";
   addTab.addEventListener("click", () => openModal("modal-tab"));
   row.appendChild(addTab);
 }
 
+// ── RENDER CONTENT ──
 function renderContent(tabId, groups) {
   const c = document.getElementById("content");
   c.innerHTML = "";
-
-  if (groups.length === 0) {
+  if (groups.length===0) {
     c.innerHTML = '<div class="empty">此分頁還沒有分組，點右上角 ⊞ 新增。</div>';
     return;
   }
-
   groups.forEach((g, gi) => {
     const section = document.createElement("div");
     section.className = "group";
 
     const header = document.createElement("div");
     header.className = "group-header";
-
     const label = document.createElement("div");
     label.className = "group-label";
     label.textContent = g.name;
 
-    const actions = document.createElement("div");
-    actions.className = "group-actions";
-
-    if (editMode) {
-      const renBtn = document.createElement("button");
-      renBtn.className = "small-btn";
-      renBtn.textContent = "重新命名";
-      renBtn.addEventListener("click", async () => {
-        const name = prompt("新名稱", g.name);
-        if (name && name.trim()) {
-          await updateDoc(doc(db, "tabs", tabId, "groups", g.id), { name: name.trim() });
-          loadContent(tabId);
+    attachCtxMenu(label, () => [
+      { label:"更名", action: async () => {
+          const name = prompt("新名稱", g.name);
+          if (name && name.trim()) {
+            await updateDoc(doc(db,"tabs",tabId,"groups",g.id), {name:name.trim()});
+            loadContent(tabId);
+          }
         }
-      });
-
-      const delBtn = document.createElement("button");
-      delBtn.className = "small-btn";
-      delBtn.textContent = "刪除分組";
-      delBtn.style.color = "#e24b4a";
-      delBtn.addEventListener("click", async () => {
-        if (confirm(`刪除分組「${g.name}」？`)) {
-          await deleteDoc(doc(db, "tabs", tabId, "groups", g.id));
-          loadContent(tabId);
+      },
+      { label:"刪除分組", danger:true, action: async () => {
+          if (confirm("刪除分組「"+g.name+"」？")) {
+            await deleteDoc(doc(db,"tabs",tabId,"groups",g.id));
+            loadContent(tabId);
+          }
         }
-      });
-
-      actions.appendChild(renBtn);
-      actions.appendChild(delBtn);
-    }
+      }
+    ]);
 
     header.appendChild(label);
-    header.appendChild(actions);
     section.appendChild(header);
 
     const linksRow = document.createElement("div");
@@ -648,18 +636,16 @@ function renderContent(tabId, groups) {
 
     g.links.forEach(lk => {
       const pill = document.createElement("a");
-      pill.className = "link-pill" + (editMode ? " edit-mode" : "");
-      if (!editMode) {
-        pill.href = lk.url;
-        pill.target = "_blank";
-        pill.rel = "noopener";
-      }
+      pill.className = "link-pill";
+      pill.href = lk.url;
+      pill.target = "_blank";
+      pill.rel = "noopener";
 
       const dot = document.createElement("div");
       dot.className = "favicon-dot";
-      dot.style.background = lk.color || "#F1EFE8";
-      dot.style.color = lk.textColor || "#444441";
-      dot.textContent = lk.abbr || "?";
+      dot.style.background = lk.color||"#F1EFE8";
+      dot.style.color = lk.textColor||"#444441";
+      dot.textContent = lk.abbr||"?";
 
       const name = document.createElement("span");
       name.className = "link-name";
@@ -668,23 +654,16 @@ function renderContent(tabId, groups) {
       pill.appendChild(dot);
       pill.appendChild(name);
 
-      if (editMode) {
-        pill.addEventListener("click", e => {
-          e.preventDefault();
-          openLinkModal(tabId, g.id, lk);
-        });
-        const rm = document.createElement("button");
-        rm.className = "link-remove";
-        rm.textContent = "×";
-        rm.addEventListener("click", async e => {
-          e.stopPropagation();
-          if (confirm(`刪除「${lk.name}」？`)) {
-            await deleteDoc(doc(db, "tabs", tabId, "groups", g.id, "links", lk.id));
-            loadContent(tabId);
+      attachCtxMenu(pill, () => [
+        { label:"編輯", action: () => openLinkModal(tabId, g.id, lk) },
+        { label:"刪除", danger:true, action: async () => {
+            if (confirm("刪除「"+lk.name+"」？")) {
+              await deleteDoc(doc(db,"tabs",tabId,"groups",g.id,"links",lk.id));
+              loadContent(tabId);
+            }
           }
-        });
-        pill.appendChild(rm);
-      }
+        }
+      ]);
 
       linksRow.appendChild(pill);
     });
@@ -696,40 +675,30 @@ function renderContent(tabId, groups) {
     linksRow.appendChild(addBtn);
 
     section.appendChild(linksRow);
-
-    if (gi < groups.length - 1) {
-      const sep = document.createElement("div");
-      sep.className = "sep";
-      section.appendChild(sep);
+    if (gi < groups.length-1) {
+      const sep = document.createElement("div"); sep.className="sep"; section.appendChild(sep);
     }
-
     c.appendChild(section);
   });
 }
 
 // ── MODALS ──
-function openModal(id) {
-  document.getElementById(id).classList.add("open");
-}
-function closeModal(id) {
-  document.getElementById(id).classList.remove("open");
-}
+function openModal(id)  { document.getElementById(id).classList.add("open"); }
+function closeModal(id) { document.getElementById(id).classList.remove("open"); }
 
-// Tab modal
 document.getElementById("mt-cancel").addEventListener("click", () => closeModal("modal-tab"));
 document.getElementById("mt-save").addEventListener("click", async () => {
   const name = document.getElementById("mt-name").value.trim();
   if (!name) return;
-  await addDoc(collection(db, "tabs"), { name, order: tabs.length });
+  await addDoc(collection(db,"tabs"), {name, order:tabs.length});
   document.getElementById("mt-name").value = "";
   closeModal("modal-tab");
   await loadAll();
-  activeTabId = tabs[tabs.length - 1]?.id;
+  activeTabId = tabs[tabs.length-1]?.id;
   renderTabs();
   showToast("分頁已新增");
 });
 
-// Group modal
 document.getElementById("btn-add-group").addEventListener("click", () => {
   if (!activeTabId) { showToast("請先新增分頁"); return; }
   pendingGroupTabId = activeTabId;
@@ -739,41 +708,36 @@ document.getElementById("mg-cancel").addEventListener("click", () => closeModal(
 document.getElementById("mg-save").addEventListener("click", async () => {
   const name = document.getElementById("mg-name").value.trim();
   if (!name || !pendingGroupTabId) return;
-  const groupSnap = await getDocs(collection(db, "tabs", pendingGroupTabId, "groups"));
-  await addDoc(collection(db, "tabs", pendingGroupTabId, "groups"), { name, order: groupSnap.size });
+  const snap = await getDocs(collection(db,"tabs",pendingGroupTabId,"groups"));
+  await addDoc(collection(db,"tabs",pendingGroupTabId,"groups"), {name, order:snap.size});
   document.getElementById("mg-name").value = "";
   closeModal("modal-group");
   loadContent(pendingGroupTabId);
   showToast("分組已新增");
 });
 
-// Link modal
 function buildColorPicker() {
   const row = document.getElementById("color-picker");
   row.innerHTML = "";
   COLORS.forEach(c => {
     const sw = document.createElement("div");
-    sw.className = "color-swatch" + (c.bg === selectedColor.bg ? " selected" : "");
+    sw.className = "color-swatch" + (c.bg===selectedColor.bg ? " selected" : "");
     sw.style.background = c.bg;
-    sw.style.borderColor = c.bg === selectedColor.bg ? c.text : "transparent";
-    sw.addEventListener("click", () => {
-      selectedColor = c;
-      buildColorPicker();
-    });
+    sw.style.borderColor = c.bg===selectedColor.bg ? c.text : "transparent";
+    sw.addEventListener("click", () => { selectedColor=c; buildColorPicker(); });
     row.appendChild(sw);
   });
 }
 
 function openLinkModal(tabId, groupId, link) {
   pendingLinkGroupId = groupId;
-  pendingGroupTabId = tabId;
-  pendingLinkId = link ? link.id : null;
-
+  pendingGroupTabId  = tabId;
+  pendingLinkId      = link ? link.id : null;
   document.getElementById("modal-link-title").textContent = link ? "編輯連結" : "新增連結";
-  document.getElementById("ml-name").value = link ? link.name : "";
-  document.getElementById("ml-url").value = link ? link.url : "";
-  document.getElementById("ml-abbr").value = link ? link.abbr : "";
-  selectedColor = link ? COLORS.find(c => c.bg === link.color) || COLORS[0] : COLORS[0];
+  document.getElementById("ml-name").value  = link ? link.name  : "";
+  document.getElementById("ml-url").value   = link ? link.url   : "";
+  document.getElementById("ml-abbr").value  = link ? link.abbr  : "";
+  selectedColor = link ? (COLORS.find(c=>c.bg===link.color)||COLORS[0]) : COLORS[0];
   buildColorPicker();
   openModal("modal-link");
 }
@@ -781,43 +745,31 @@ function openLinkModal(tabId, groupId, link) {
 document.getElementById("ml-cancel").addEventListener("click", () => closeModal("modal-link"));
 document.getElementById("ml-save").addEventListener("click", async () => {
   const name = document.getElementById("ml-name").value.trim();
-  const url = document.getElementById("ml-url").value.trim();
+  const url  = document.getElementById("ml-url").value.trim();
   const abbr = document.getElementById("ml-abbr").value.trim();
   if (!name || !url) return;
-
-  const linkData = {
-    name, url,
-    abbr: abbr || name.slice(0, 2).toUpperCase(),
-    color: selectedColor.bg,
-    textColor: selectedColor.text,
-  };
-
-  const base = collection(db, "tabs", pendingGroupTabId, "groups", pendingLinkGroupId, "links");
-
+  const data = { name, url, abbr:abbr||name.slice(0,2).toUpperCase(), color:selectedColor.bg, textColor:selectedColor.text };
+  const base = collection(db,"tabs",pendingGroupTabId,"groups",pendingLinkGroupId,"links");
   if (pendingLinkId) {
-    await updateDoc(doc(db, "tabs", pendingGroupTabId, "groups", pendingLinkGroupId, "links", pendingLinkId), linkData);
+    await updateDoc(doc(db,"tabs",pendingGroupTabId,"groups",pendingLinkGroupId,"links",pendingLinkId), data);
   } else {
     const snap = await getDocs(base);
-    await addDoc(base, { ...linkData, order: snap.size });
+    await addDoc(base, {...data, order:snap.size});
   }
-
   closeModal("modal-link");
   loadContent(pendingGroupTabId);
   showToast(pendingLinkId ? "已更新" : "連結已新增");
 });
 
-// Close on backdrop click
 ["modal-link","modal-tab","modal-group"].forEach(id => {
-  document.getElementById(id).addEventListener("click", e => {
-    if (e.target === document.getElementById(id)) closeModal(id);
+  document.getElementById(id).addEventListener("mousedown", e => {
+    if (e.target===document.getElementById(id)) closeModal(id);
   });
 });
 
-// ── TOAST ──
 function showToast(msg) {
   const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.classList.add("show");
+  t.textContent = msg; t.classList.add("show");
   setTimeout(() => t.classList.remove("show"), 2000);
 }
 </script>
