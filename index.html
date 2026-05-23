@@ -4,330 +4,225 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Lumos</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #f4f3f0;
+  --surface: #ffffff;
+  --border: rgba(0,0,0,0.07);
+  --border-md: rgba(0,0,0,0.13);
+  --text: #1a1a1a;
+  --text-muted: #888;
+  --text-faint: #bbb;
+  --font: 'DM Sans', sans-serif;
+  --mono: 'DM Mono', monospace;
+  --radius: 12px;
+}
+body { font-family: var(--font); background: var(--bg); color: var(--text); min-height: 100vh; -webkit-font-smoothing: antialiased; }
 
-  :root {
-    --bg: #f7f6f3;
-    --surface: #ffffff;
-    --border: rgba(0,0,0,0.08);
-    --border-hover: rgba(0,0,0,0.18);
-    --text: #1a1a1a;
-    --text-muted: #888;
-    --text-faint: #bbb;
-    --accent: #1a1a1a;
-    --pill-bg: #ffffff;
-    --pill-hover: #f0efe9;
-    --tab-active: #1a1a1a;
-    --tab-inactive: #aaa;
-    --font: 'DM Sans', sans-serif;
-    --mono: 'DM Mono', monospace;
-  }
+/* LOGIN */
+#login-screen {
+  position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: var(--bg); z-index: 100; transition: opacity 0.4s ease;
+}
+#login-screen.fade-out { opacity: 0; pointer-events: none; }
+.login-box { display: flex; flex-direction: column; align-items: center; gap: 20px; animation: fadeUp 0.5s ease both; }
+.login-logo { font-family: var(--mono); font-size: 22px; letter-spacing: 0.12em; color: var(--text); margin-bottom: 8px; }
+.login-input-wrap { position: relative; }
+.login-input-wrap input {
+  font-family: var(--mono); font-size: 15px; letter-spacing: 0.15em;
+  border: 1px solid var(--border); background: var(--surface); border-radius: 8px;
+  padding: 12px 44px 12px 18px; width: 220px; outline: none; color: var(--text);
+  transition: border-color 0.2s;
+}
+.login-input-wrap input:focus { border-color: var(--border-md); }
+.login-input-wrap input.error { border-color: #e24b4a; animation: shake 0.35s ease; }
+.login-submit {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer; color: var(--text-muted); font-size: 16px; padding: 4px;
+}
+.login-hint { font-size: 12px; color: var(--text-faint); }
 
-  body {
-    font-family: var(--font);
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    -webkit-font-smoothing: antialiased;
-  }
+/* APP */
+#app { display: none; max-width: 860px; margin: 0 auto; padding: 2.5rem 2rem 4rem; }
+#app.visible { display: block; }
 
-  /* ── LOGIN ── */
-  #login-screen {
-    position: fixed; inset: 0;
-    display: flex; align-items: center; justify-content: center;
-    background: var(--bg);
-    z-index: 100;
-    transition: opacity 0.4s ease;
-  }
-  #login-screen.fade-out { opacity: 0; pointer-events: none; }
+/* TOPBAR */
+.topbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; }
+.logo { font-family: var(--mono); font-size: 15px; letter-spacing: 0.12em; color: var(--text-muted); }
+.topbar-actions { display: flex; gap: 6px; }
+.icon-btn {
+  width: 32px; height: 32px; border-radius: 8px;
+  border: 1px solid var(--border); background: var(--surface);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; color: var(--text-muted); font-size: 15px;
+  transition: border-color 0.15s, background 0.15s;
+}
+.icon-btn:hover { border-color: var(--border-md); background: #efefea; }
 
-  .login-box {
-    display: flex; flex-direction: column; align-items: center; gap: 20px;
-    animation: fadeUp 0.5s ease both;
-  }
-  .login-logo {
-    font-family: var(--mono);
-    font-size: 22px;
-    letter-spacing: 0.12em;
-    color: var(--text);
-    margin-bottom: 8px;
-  }
-  .login-input-wrap {
-    position: relative;
-  }
-  .login-input-wrap input {
-    font-family: var(--mono);
-    font-size: 15px;
-    letter-spacing: 0.15em;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    border-radius: 8px;
-    padding: 12px 44px 12px 18px;
-    width: 220px;
-    outline: none;
-    color: var(--text);
-    transition: border-color 0.2s;
-  }
-  .login-input-wrap input:focus { border-color: var(--border-hover); }
-  .login-input-wrap input.error { border-color: #e24b4a; animation: shake 0.35s ease; }
-  .login-submit {
-    position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
-    background: none; border: none; cursor: pointer;
-    color: var(--text-muted); font-size: 16px; padding: 4px;
-    transition: color 0.15s;
-  }
-  .login-submit:hover { color: var(--text); }
-  .login-hint { font-size: 12px; color: var(--text-faint); }
+/* TABS */
+.tab-row {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  margin-bottom: 2rem;
+}
+.tab {
+  font-size: 13px; padding: 6px 16px; border-radius: 999px;
+  border: 1px solid var(--border); background: var(--surface);
+  color: var(--text-muted); cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  user-select: none;
+}
+.tab:hover { border-color: var(--border-md); color: var(--text); }
+.tab.active { background: var(--text); color: #fff; border-color: var(--text); }
+.tab-add {
+  font-size: 13px; padding: 6px 12px; border-radius: 999px;
+  border: 1px dashed var(--border-md); background: transparent;
+  color: var(--text-faint); cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+.tab-add:hover { color: var(--text-muted); border-color: var(--text-muted); }
 
-  /* ── APP ── */
-  #app { display: none; max-width: 820px; margin: 0 auto; padding: 2.5rem 2rem 4rem; }
-  #app.visible { display: block; }
+/* GROUP */
+.group { margin-bottom: 2rem; animation: fadeUp 0.25s ease both; }
+.group-header { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.group-label {
+  font-size: 11px; font-weight: 500; color: var(--text-faint);
+  letter-spacing: 0.1em; text-transform: uppercase; font-family: var(--mono);
+  cursor: default; user-select: none;
+}
+.group-count {
+  font-size: 11px; color: var(--text-faint);
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 999px; padding: 0 7px;
+}
+.sep { height: 1px; background: var(--border); margin: 0.25rem 0 1.75rem; }
 
-  /* topbar */
-  .topbar {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 2.5rem;
-  }
-  .logo { font-family: var(--mono); font-size: 15px; letter-spacing: 0.12em; color: var(--text-muted); }
-  .topbar-actions { display: flex; gap: 6px; }
-  .icon-btn {
-    width: 32px; height: 32px; border-radius: 7px;
-    border: 1px solid var(--border);
-    background: var(--surface);
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; color: var(--text-muted); font-size: 15px;
-    transition: border-color 0.15s, color 0.15s, background 0.15s;
-  }
-  .icon-btn:hover { border-color: var(--border-hover); color: var(--text); background: var(--pill-hover); }
-  .icon-btn.active { background: var(--text); color: var(--bg); border-color: var(--text); }
+/* CARD GRID */
+.card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+.card {
+  background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 14px 12px; display: flex; flex-direction: column; align-items: flex-start; gap: 8px;
+  cursor: pointer; text-decoration: none; position: relative;
+  transition: border-color 0.15s, background 0.15s;
+  user-select: none;
+}
+.card:hover { border-color: var(--border-md); background: #fafaf8; }
+.card-icon {
+  width: 34px; height: 34px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 500; font-family: var(--mono);
+  flex-shrink: 0;
+}
+.card-name { font-size: 13px; font-weight: 500; color: var(--text); line-height: 1.3; }
+.card-domain { font-size: 11px; color: var(--text-faint); }
+.card-add {
+  border-style: dashed; background: transparent;
+  align-items: center; justify-content: center;
+  min-height: 88px; cursor: pointer; border: none;
+  width: 100%;
+}
+.card-add-inner {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 4px; height: 100%;
+  border: 1px dashed var(--border-md); border-radius: var(--radius);
+  padding: 14px 12px; width: 100%;
+  transition: border-color 0.15s, background 0.15s;
+  background: transparent;
+}
+.card-add-inner:hover { border-color: var(--text-muted); background: #fafaf8; }
+.card-add-icon { font-size: 18px; color: var(--text-faint); }
+.card-add-label { font-size: 12px; color: var(--text-faint); }
 
-  /* tabs */
-  .tab-row {
-    display: flex; align-items: center; gap: 0;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 2rem;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .tab-row::-webkit-scrollbar { display: none; }
-  .tab {
-    font-size: 13px; font-weight: 400;
-    color: var(--tab-inactive);
-    padding: 0 16px 10px;
-    cursor: pointer;
-    border-bottom: 1.5px solid transparent;
-    margin-bottom: -1px;
-    white-space: nowrap;
-    transition: color 0.15s, border-color 0.15s;
-    user-select: none;
-  }
-  .tab:hover { color: var(--text); }
-  .tab.active { color: var(--tab-active); border-bottom-color: var(--tab-active); }
-  .tab-add {
-    font-size: 18px; color: var(--text-faint);
-    padding: 0 10px 10px; cursor: pointer; margin-bottom: -1px;
-    transition: color 0.15s;
-    line-height: 1;
-  }
-  .tab-add:hover { color: var(--text-muted); }
+/* EMPTY */
+.empty { color: var(--text-faint); font-size: 13px; padding: 1rem 0; }
+.loader { text-align: center; padding: 3rem; color: var(--text-faint); font-size: 13px; font-family: var(--mono); }
 
-  /* groups */
-  .group { margin-bottom: 2rem; animation: fadeUp 0.3s ease both; }
-  .group-header {
-    display: flex; align-items: center; gap: 8px;
-    margin-bottom: 10px;
-  }
-  .group-label {
-    font-size: 11px; font-weight: 500;
-    color: var(--text-faint);
-    letter-spacing: 0.1em; text-transform: uppercase;
-    font-family: var(--mono);
-  }
-  .group-actions { display: flex; gap: 4px; opacity: 0; transition: opacity 0.15s; }
-  .group-header:hover .group-actions { opacity: 1; }
-  .small-btn {
-    font-size: 11px; color: var(--text-faint);
-    background: none; border: none; cursor: pointer; padding: 2px 6px;
-    border-radius: 4px; transition: background 0.15s, color 0.15s;
-    font-family: var(--font);
-  }
-  .small-btn:hover { background: var(--border); color: var(--text-muted); }
+/* MODAL */
+.modal-backdrop {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.2);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 200; opacity: 0; transition: opacity 0.2s; pointer-events: none;
+}
+.modal-backdrop.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--surface); border-radius: 14px; border: 1px solid var(--border);
+  padding: 1.5rem; width: 340px;
+  transform: translateY(8px); transition: transform 0.2s;
+}
+.modal-backdrop.open .modal { transform: translateY(0); }
+.modal h3 { font-size: 15px; font-weight: 500; margin-bottom: 1rem; }
+.modal label { font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px; margin-top: 12px; }
+.modal input {
+  width: 100%; border: 1px solid var(--border); border-radius: 8px;
+  padding: 9px 12px; font-size: 14px; font-family: var(--font);
+  outline: none; color: var(--text); background: var(--bg); transition: border-color 0.15s;
+}
+.modal input:focus { border-color: var(--border-md); }
+.modal-actions { display: flex; gap: 8px; margin-top: 1.25rem; justify-content: flex-end; }
+.btn-cancel {
+  padding: 8px 16px; border-radius: 8px; border: 1px solid var(--border);
+  background: none; font-size: 13px; cursor: pointer; color: var(--text-muted); font-family: var(--font);
+}
+.btn-cancel:hover { background: var(--bg); }
+.btn-save {
+  padding: 8px 16px; border-radius: 8px; border: none;
+  background: var(--text); color: #fff; font-size: 13px; cursor: pointer; font-family: var(--font);
+}
+.btn-save:hover { opacity: 0.85; }
 
-  /* links */
-  .links { display: flex; flex-wrap: wrap; gap: 6px; }
-  .link-pill {
-    display: flex; align-items: center; gap: 7px;
-    padding: 6px 13px 6px 10px;
-    border-radius: 7px;
-    border: 1px solid var(--border);
-    background: var(--pill-bg);
-    cursor: pointer; text-decoration: none;
-    transition: border-color 0.15s, background 0.15s;
-    user-select: none;
-    position: relative;
-  }
-  .link-pill:hover { border-color: var(--border-hover); background: var(--pill-hover); }
-  .link-pill.edit-mode { padding-right: 30px; }
-  .favicon-dot {
-    width: 18px; height: 18px; border-radius: 4px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 8px; font-weight: 500;
-    flex-shrink: 0;
-    font-family: var(--mono);
-  }
-  .link-name { font-size: 13px; color: var(--text); white-space: nowrap; }
-  .link-remove {
-    position: absolute; right: 7px; top: 50%; transform: translateY(-50%);
-    width: 16px; height: 16px; border-radius: 50%;
-    background: #e24b4a; color: #fff;
-    border: none; cursor: pointer;
-    font-size: 10px; line-height: 16px; text-align: center;
-    display: none; align-items: center; justify-content: center;
-    font-family: var(--mono);
-  }
-  .edit-mode .link-remove { display: flex; }
+/* COLOR PICKER */
+.color-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+.color-swatch {
+  width: 22px; height: 22px; border-radius: 50%; cursor: pointer;
+  border: 2px solid transparent; transition: border-color 0.15s;
+}
+.color-swatch.selected { border-color: var(--text); }
 
-  .add-pill {
-    display: flex; align-items: center; gap: 6px;
-    padding: 6px 12px;
-    border-radius: 7px;
-    border: 1px dashed var(--border);
-    background: transparent;
-    cursor: pointer;
-    font-size: 13px; color: var(--text-faint);
-    transition: border-color 0.15s, color 0.15s;
-    font-family: var(--font);
-  }
-  .add-pill:hover { border-color: var(--border-hover); color: var(--text-muted); }
+/* CONTEXT MENU */
+.ctx-menu {
+  position: fixed; background: var(--surface);
+  border: 1px solid var(--border-md); border-radius: 10px;
+  padding: 4px; z-index: 500; min-width: 130px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.1);
+  animation: fadeUp 0.12s ease both;
+}
+.ctx-item {
+  padding: 9px 14px; font-size: 13px; border-radius: 7px;
+  cursor: pointer; color: var(--text); transition: background 0.1s;
+  font-family: var(--font); white-space: nowrap;
+}
+.ctx-item:hover { background: #f0efe9; }
+.ctx-item.danger { color: #c0392b; }
+.ctx-item.danger:hover { background: #fdf0ef; }
 
-  .sep { height: 1px; background: var(--border); margin: 0.25rem 0 1.75rem; }
+/* TOAST */
+.toast {
+  position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(10px);
+  background: var(--text); color: #fff; font-size: 13px;
+  padding: 9px 18px; border-radius: 8px;
+  opacity: 0; transition: opacity 0.2s, transform 0.2s;
+  pointer-events: none; z-index: 600; white-space: nowrap;
+}
+.toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
-  /* empty state */
-  .empty { color: var(--text-faint); font-size: 13px; padding: 1rem 0; }
-
-  /* modal */
-  .modal-backdrop {
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,0.25);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 200;
-    opacity: 0; transition: opacity 0.2s;
-    pointer-events: none;
-  }
-  .modal-backdrop.open { opacity: 1; pointer-events: all; }
-  .modal {
-    background: var(--surface);
-    border-radius: 12px;
-    border: 1px solid var(--border);
-    padding: 1.5rem;
-    width: 340px;
-    transform: translateY(8px); transition: transform 0.2s;
-  }
-  .modal-backdrop.open .modal { transform: translateY(0); }
-  .modal h3 { font-size: 15px; font-weight: 500; margin-bottom: 1rem; }
-  .modal label { font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px; margin-top: 12px; }
-  .modal input {
-    width: 100%; border: 1px solid var(--border); border-radius: 7px;
-    padding: 9px 12px; font-size: 14px; font-family: var(--font);
-    outline: none; color: var(--text); background: var(--bg);
-    transition: border-color 0.15s;
-  }
-  .modal input:focus { border-color: var(--border-hover); }
-  .modal-actions { display: flex; gap: 8px; margin-top: 1.25rem; justify-content: flex-end; }
-  .btn-cancel {
-    padding: 8px 16px; border-radius: 7px;
-    border: 1px solid var(--border); background: none;
-    font-size: 13px; cursor: pointer; color: var(--text-muted);
-    font-family: var(--font); transition: background 0.15s;
-  }
-  .btn-cancel:hover { background: var(--pill-hover); }
-  .btn-save {
-    padding: 8px 16px; border-radius: 7px;
-    border: none; background: var(--text); color: var(--bg);
-    font-size: 13px; cursor: pointer; font-family: var(--font);
-    transition: opacity 0.15s;
-  }
-  .btn-save:hover { opacity: 0.8; }
-
-  /* color picker row */
-  .color-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
-  .color-swatch {
-    width: 22px; height: 22px; border-radius: 50%;
-    cursor: pointer; border: 2px solid transparent;
-    transition: border-color 0.15s;
-    flex-shrink: 0;
-  }
-  .color-swatch.selected { border-color: var(--text); }
-
-  /* toast */
-  .toast {
-    position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(10px);
-    background: var(--text); color: var(--bg);
-    font-size: 13px; padding: 9px 18px; border-radius: 8px;
-    opacity: 0; transition: opacity 0.2s, transform 0.2s;
-    pointer-events: none; z-index: 300; font-family: var(--font);
-    white-space: nowrap;
-  }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-  /* loader */
-  .loader { text-align: center; padding: 3rem; color: var(--text-faint); font-size: 13px; font-family: var(--mono); }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  @keyframes shake {
-    0%,100% { transform: translateX(0); }
-    20%,60% { transform: translateX(-6px); }
-    40%,80% { transform: translateX(6px); }
-  }
-
-  /* context menu */
-  .ctx-menu {
-    position: fixed;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 5px;
-    z-index: 400;
-    min-width: 130px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.12);
-    animation: fadeUp 0.15s ease both;
-  }
-  .ctx-item {
-    padding: 9px 14px;
-    font-size: 13px;
-    border-radius: 6px;
-    cursor: pointer;
-    color: var(--text);
-    transition: background 0.1s;
-    font-family: var(--font);
-    white-space: nowrap;
-  }
-  .ctx-item:hover { background: var(--pill-hover); }
-  .ctx-item.danger { color: #e24b4a; }
-  .ctx-item.danger:hover { background: #fcebeb; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+@keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-6px)} 75%{transform:translateX(6px)} }
 </style>
 </head>
 <body>
 
-<!-- LOGIN -->
 <div id="login-screen">
   <div class="login-box">
     <div class="login-logo">LUMOS</div>
     <div class="login-input-wrap">
-      <input type="password" id="pwd-input" placeholder="password" autocomplete="off" />
-      <button class="login-submit" id="pwd-submit" aria-label="登入">→</button>
+      <input type="password" id="pwd-input" placeholder="password" autocomplete="off"/>
+      <button class="login-submit" id="pwd-submit">→</button>
     </div>
     <div class="login-hint" id="login-hint"></div>
   </div>
 </div>
 
-<!-- APP -->
 <div id="app">
   <div class="topbar">
     <div class="logo">LUMOS</div>
@@ -335,26 +230,18 @@
       <div class="icon-btn" id="btn-add-group" title="新增分組">⊞</div>
     </div>
   </div>
-
   <div class="tab-row" id="tab-row"></div>
-
-  <div id="content">
-    <div class="loader">loading…</div>
-  </div>
+  <div id="content"><div class="loader">loading…</div></div>
 </div>
 
-<!-- MODAL: add/edit link -->
+<!-- Modal: link -->
 <div class="modal-backdrop" id="modal-link">
   <div class="modal">
     <h3 id="modal-link-title">新增連結</h3>
-    <label>名稱</label>
-    <input type="text" id="ml-name" placeholder="Gmail" />
-    <label>網址</label>
-    <input type="url" id="ml-url" placeholder="https://mail.google.com" />
-    <label>縮寫（顯示在小圓圈）</label>
-    <input type="text" id="ml-abbr" placeholder="G" maxlength="4" />
-    <label>顏色</label>
-    <div class="color-row" id="color-picker"></div>
+    <label>名稱</label><input type="text" id="ml-name" placeholder="Gmail"/>
+    <label>網址</label><input type="url" id="ml-url" placeholder="https://mail.google.com"/>
+    <label>縮寫</label><input type="text" id="ml-abbr" placeholder="G" maxlength="4"/>
+    <label>顏色</label><div class="color-row" id="color-picker"></div>
     <div class="modal-actions">
       <button class="btn-cancel" id="ml-cancel">取消</button>
       <button class="btn-save" id="ml-save">儲存</button>
@@ -362,12 +249,11 @@
   </div>
 </div>
 
-<!-- MODAL: add tab -->
+<!-- Modal: tab -->
 <div class="modal-backdrop" id="modal-tab">
   <div class="modal">
-    <h3>新增場景分頁</h3>
-    <label>名稱</label>
-    <input type="text" id="mt-name" placeholder="工作" />
+    <h3>新增分頁</h3>
+    <label>名稱</label><input type="text" id="mt-name" placeholder="工作"/>
     <div class="modal-actions">
       <button class="btn-cancel" id="mt-cancel">取消</button>
       <button class="btn-save" id="mt-save">新增</button>
@@ -375,12 +261,11 @@
   </div>
 </div>
 
-<!-- MODAL: add group -->
+<!-- Modal: group -->
 <div class="modal-backdrop" id="modal-group">
   <div class="modal">
     <h3>新增分組</h3>
-    <label>名稱</label>
-    <input type="text" id="mg-name" placeholder="常用" />
+    <label>名稱</label><input type="text" id="mg-name" placeholder="常用"/>
     <div class="modal-actions">
       <button class="btn-cancel" id="mg-cancel">取消</button>
       <button class="btn-save" id="mg-save">新增</button>
@@ -390,164 +275,133 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- Firebase -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import {
-  getFirestore, collection, doc,
-  getDocs, addDoc, deleteDoc, updateDoc,
-  query, orderBy
-} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getFirestore, collection, doc, getDocs, addDoc, deleteDoc, updateDoc, query, orderBy }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-const firebaseConfig = {
+const db = getFirestore(initializeApp({
   apiKey: "AIzaSyCBDKAOWQxc7oQz5IOhYVeaWpgbItp_glI",
   authDomain: "lumos-c6ccc.firebaseapp.com",
   projectId: "lumos-c6ccc",
   storageBucket: "lumos-c6ccc.firebasestorage.app",
   messagingSenderId: "914721288327",
   appId: "1:914721288327:web:6539b1770c23f007858822"
-};
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+}));
 
-const PASSWORD_HASH = "bda94d3dce78637e7e47c7ea19824b93a643d023947dbf12ab3afc7032bb2597";
+const PWD_HASH = "bda94d3dce78637e7e47c7ea19824b93a643d023947dbf12ab3afc7032bb2597";
 const COLORS = [
-  { bg:"#E6F1FB", text:"#0C447C" }, { bg:"#EEEDFE", text:"#3C3489" },
-  { bg:"#E1F5EE", text:"#085041" }, { bg:"#FAECE7", text:"#712B13" },
-  { bg:"#FBEAF0", text:"#72243E" }, { bg:"#FAEEDA", text:"#633806" },
-  { bg:"#EAF3DE", text:"#27500A" }, { bg:"#FCEBEB", text:"#791F1F" },
-  { bg:"#F1EFE8", text:"#444441" },
+  {bg:"#E6F1FB",tc:"#0C447C"},{bg:"#EEEDFE",tc:"#3C3489"},{bg:"#E1F5EE",tc:"#085041"},
+  {bg:"#FAECE7",tc:"#712B13"},{bg:"#FBEAF0",tc:"#72243E"},{bg:"#FAEEDA",tc:"#633806"},
+  {bg:"#EAF3DE",tc:"#27500A"},{bg:"#FCEBEB",tc:"#791F1F"},{bg:"#F1EFE8",tc:"#444441"},
 ];
 
-let selectedColor = COLORS[0];
-let activeTabId = null;
-let tabs = [];
-let pendingGroupTabId = null;
-let pendingLinkGroupId = null;
-let pendingLinkId = null;
+let selColor = COLORS[0], activeTabId = null, tabs = [];
+let pTabId = null, pGroupId = null, pLinkId = null;
 
 // ── AUTH ──
-async function hashStr(str) {
-  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
+async function sha256(s) {
+  const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
+  return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,"0")).join("");
 }
-function checkSession() { return sessionStorage.getItem("lumos_auth") === "1"; }
 async function tryLogin() {
-  const val = document.getElementById("pwd-input").value;
-  if (await hashStr(val) === PASSWORD_HASH) {
-    sessionStorage.setItem("lumos_auth","1");
+  const v = document.getElementById("pwd-input").value;
+  if (await sha256(v) === PWD_HASH) {
+    sessionStorage.setItem("lumos_ok","1");
     const ls = document.getElementById("login-screen");
     ls.classList.add("fade-out");
-    setTimeout(() => { ls.style.display="none"; }, 400);
+    setTimeout(()=>ls.style.display="none",400);
     document.getElementById("app").classList.add("visible");
     loadAll();
   } else {
-    const inp = document.getElementById("pwd-input");
-    inp.classList.add("error");
-    document.getElementById("login-hint").textContent = "密碼錯誤";
-    setTimeout(() => { inp.classList.remove("error"); inp.value=""; }, 600);
+    const el = document.getElementById("pwd-input");
+    el.classList.add("error"); document.getElementById("login-hint").textContent="密碼錯誤";
+    setTimeout(()=>{ el.classList.remove("error"); el.value=""; },600);
   }
 }
 document.getElementById("pwd-submit").addEventListener("click", tryLogin);
-document.getElementById("pwd-input").addEventListener("keydown", e => { if(e.key==="Enter") tryLogin(); });
-if (checkSession()) {
-  document.getElementById("login-screen").style.display = "none";
+document.getElementById("pwd-input").addEventListener("keydown", e=>{ if(e.key==="Enter") tryLogin(); });
+if (sessionStorage.getItem("lumos_ok")==="1") {
+  document.getElementById("login-screen").style.display="none";
   document.getElementById("app").classList.add("visible");
   loadAll();
 }
 
 // ── CONTEXT MENU ──
-// Uses native contextmenu event (right-click on desktop, long-press on mobile).
-// Menu is removed only when user clicks an item or clicks outside.
 let ctxEl = null;
-
-function showCtxMenu(x, y, items) {
-  removeCtxMenu();
+function showCtx(x, y, items) {
+  if (ctxEl) ctxEl.remove();
   ctxEl = document.createElement("div");
   ctxEl.className = "ctx-menu";
-  // Prevent the document click that immediately follows from closing the menu
-  ctxEl.addEventListener("mousedown", e => e.stopPropagation());
-  ctxEl.addEventListener("touchstart", e => e.stopPropagation(), {passive:true});
+  // Block the event from immediately triggering the outside-click listener
+  ctxEl.addEventListener("mousedown", e=>e.stopPropagation());
 
   items.forEach(item => {
-    const el = document.createElement("div");
-    el.className = "ctx-item" + (item.danger ? " danger" : "");
-    el.textContent = item.label;
-    el.addEventListener("mousedown", e => {
+    const d = document.createElement("div");
+    d.className = "ctx-item" + (item.danger?" danger":"");
+    d.textContent = item.label;
+    d.addEventListener("mousedown", e => {
       e.stopPropagation();
-      removeCtxMenu();
-      item.action();
+      closeCtx();
+      item.fn();
     });
-    ctxEl.appendChild(el);
+    ctxEl.appendChild(d);
   });
 
-  ctxEl.style.left = "0px";
-  ctxEl.style.top = "0px";
   document.body.appendChild(ctxEl);
-
-  // Position after paint so we know the menu size
+  // Position
   requestAnimationFrame(() => {
-    const mw = ctxEl.offsetWidth;
-    const mh = ctxEl.offsetHeight;
-    const safeX = Math.min(x, window.innerWidth - mw - 8);
-    const safeY = Math.min(y, window.innerHeight - mh - 8);
-    ctxEl.style.left = safeX + "px";
-    ctxEl.style.top  = safeY + "px";
+    const w=ctxEl.offsetWidth, h=ctxEl.offsetHeight;
+    ctxEl.style.left = Math.min(x, innerWidth-w-8)+"px";
+    ctxEl.style.top  = Math.min(y, innerHeight-h-8)+"px";
   });
-
-  // Close when clicking/touching anywhere outside
-  setTimeout(() => {
-    document.addEventListener("mousedown", removeCtxMenu, {once:true});
-    document.addEventListener("touchstart", removeCtxMenu, {once:true, passive:true});
-  }, 50);
+  // Dismiss on next outside click — delayed so THIS event doesn't close it
+  setTimeout(() => document.addEventListener("mousedown", closeCtx, {once:true}), 100);
 }
+function closeCtx() { if(ctxEl){ ctxEl.remove(); ctxEl=null; } }
 
-function removeCtxMenu() {
-  if (ctxEl) { ctxEl.remove(); ctxEl = null; }
-}
-
-function attachCtxMenu(el, itemsFn) {
+function bindCtx(el, itemsFn) {
   // Desktop: right-click
   el.addEventListener("contextmenu", e => {
-    e.preventDefault();
-    showCtxMenu(e.clientX, e.clientY, itemsFn());
+    e.preventDefault(); e.stopPropagation();
+    showCtx(e.clientX, e.clientY, itemsFn());
   });
-
-  // Mobile / touch: long-press (600ms)
-  let touchTimer = null;
+  // Mobile: long press
+  let t=null;
   el.addEventListener("touchstart", e => {
-    touchTimer = setTimeout(() => {
-      touchTimer = null;
-      const t = e.touches[0];
-      showCtxMenu(t.clientX, t.clientY, itemsFn());
+    t = setTimeout(() => {
+      t=null;
+      const touch=e.touches[0];
+      showCtx(touch.clientX, touch.clientY, itemsFn());
     }, 600);
   }, {passive:true});
-  el.addEventListener("touchend",    () => { if(touchTimer){clearTimeout(touchTimer);touchTimer=null;} });
-  el.addEventListener("touchcancel", () => { if(touchTimer){clearTimeout(touchTimer);touchTimer=null;} });
-  el.addEventListener("touchmove",   () => { if(touchTimer){clearTimeout(touchTimer);touchTimer=null;} });
+  const cancel = () => { if(t){clearTimeout(t);t=null;} };
+  el.addEventListener("touchend", cancel);
+  el.addEventListener("touchmove", cancel);
+  el.addEventListener("touchcancel", cancel);
 }
 
 // ── DATA ──
 async function loadAll() {
-  const snap = await getDocs(query(collection(db,"tabs"), orderBy("order")));
-  tabs = snap.docs.map(d => ({id:d.id,...d.data()}));
+  const snap = await getDocs(query(collection(db,"tabs"),orderBy("order")));
+  tabs = snap.docs.map(d=>({id:d.id,...d.data()}));
   if (!activeTabId || !tabs.find(t=>t.id===activeTabId))
-    activeTabId = tabs[0]?.id || null;
+    activeTabId = tabs[0]?.id||null;
   renderTabs();
   if (!activeTabId) {
-    document.getElementById("content").innerHTML = '<div class="empty">尚無分頁，點分頁列右側 + 新增。</div>';
+    document.getElementById("content").innerHTML='<div class="empty">尚無分頁，點分頁列 + 新增。</div>';
     return;
   }
   loadContent(activeTabId);
 }
 
 async function loadContent(tabId) {
-  document.getElementById("content").innerHTML = '<div class="loader">loading…</div>';
-  const gSnap = await getDocs(query(collection(db,"tabs",tabId,"groups"), orderBy("order")));
-  const groups = gSnap.docs.map(d=>({id:d.id,...d.data()}));
-  const all = await Promise.all(groups.map(async g => {
-    const lSnap = await getDocs(query(collection(db,"tabs",tabId,"groups",g.id,"links"), orderBy("order")));
-    return {...g, links:lSnap.docs.map(d=>({id:d.id,...d.data()}))};
+  document.getElementById("content").innerHTML='<div class="loader">loading…</div>';
+  const gs = await getDocs(query(collection(db,"tabs",tabId,"groups"),orderBy("order")));
+  const groups = gs.docs.map(d=>({id:d.id,...d.data()}));
+  const all = await Promise.all(groups.map(async g=>{
+    const ls = await getDocs(query(collection(db,"tabs",tabId,"groups",g.id,"links"),orderBy("order")));
+    return {...g, links:ls.docs.map(d=>({id:d.id,...d.data()}))};
   }));
   renderContent(tabId, all);
 }
@@ -558,219 +412,182 @@ function renderTabs() {
   row.innerHTML = "";
   tabs.forEach(t => {
     const el = document.createElement("div");
-    el.className = "tab" + (t.id===activeTabId ? " active" : "");
+    el.className = "tab"+(t.id===activeTabId?" active":"");
     el.textContent = t.name;
-    el.addEventListener("click", () => { activeTabId=t.id; renderTabs(); loadContent(t.id); });
-
-    attachCtxMenu(el, () => [
-      { label:"更名", action: async () => {
-          const name = prompt("新分頁名稱", t.name);
-          if (name && name.trim()) {
-            await updateDoc(doc(db,"tabs",t.id), {name:name.trim()});
-            await loadAll();
-          }
-        }
-      },
-      { label:"刪除分頁", danger:true, action: async () => {
-          if (confirm("刪除分頁「"+t.name+"」？（分頁內所有資料都會刪除）")) {
+    el.addEventListener("click", ()=>{ activeTabId=t.id; renderTabs(); loadContent(t.id); });
+    bindCtx(el, ()=>[
+      { label:"更名", fn: async ()=>{
+          const n=prompt("新分頁名稱",t.name);
+          if(n&&n.trim()){ await updateDoc(doc(db,"tabs",t.id),{name:n.trim()}); loadAll(); }
+      }},
+      { label:"刪除分頁", danger:true, fn: async ()=>{
+          if(confirm("刪除「"+t.name+"」？分頁內所有資料都會刪除。")){
             await deleteDoc(doc(db,"tabs",t.id));
-            tabs = tabs.filter(x=>x.id!==t.id);
-            if (activeTabId===t.id) activeTabId = tabs[0]?.id||null;
-            await loadAll();
+            tabs=tabs.filter(x=>x.id!==t.id);
+            if(activeTabId===t.id) activeTabId=tabs[0]?.id||null;
+            loadAll();
           }
-        }
-      }
+      }},
     ]);
-
     row.appendChild(el);
   });
-
-  const addTab = document.createElement("div");
-  addTab.className = "tab-add";
-  addTab.textContent = "+";
-  addTab.addEventListener("click", () => openModal("modal-tab"));
-  row.appendChild(addTab);
+  const add = document.createElement("div");
+  add.className="tab-add"; add.textContent="+ 新增分頁";
+  add.addEventListener("click",()=>openModal("modal-tab"));
+  row.appendChild(add);
 }
 
 // ── RENDER CONTENT ──
+function domain(url) {
+  try { return new URL(url).hostname.replace("www.",""); } catch{ return ""; }
+}
+
 function renderContent(tabId, groups) {
   const c = document.getElementById("content");
-  c.innerHTML = "";
-  if (groups.length===0) {
-    c.innerHTML = '<div class="empty">此分頁還沒有分組，點右上角 ⊞ 新增。</div>';
-    return;
+  c.innerHTML="";
+  if (!groups.length) {
+    c.innerHTML='<div class="empty">此分頁還沒有分組，點右上角 ⊞ 新增。</div>'; return;
   }
   groups.forEach((g, gi) => {
     const section = document.createElement("div");
-    section.className = "group";
+    section.className="group";
 
-    const header = document.createElement("div");
-    header.className = "group-header";
-    const label = document.createElement("div");
-    label.className = "group-label";
-    label.textContent = g.name;
-
-    attachCtxMenu(label, () => [
-      { label:"更名", action: async () => {
-          const name = prompt("新名稱", g.name);
-          if (name && name.trim()) {
-            await updateDoc(doc(db,"tabs",tabId,"groups",g.id), {name:name.trim()});
-            loadContent(tabId);
+    // Header
+    const hdr = document.createElement("div"); hdr.className="group-header";
+    const lbl = document.createElement("div"); lbl.className="group-label"; lbl.textContent=g.name;
+    const cnt = document.createElement("div"); cnt.className="group-count"; cnt.textContent=g.links.length;
+    bindCtx(lbl, ()=>[
+      { label:"更名", fn: async ()=>{
+          const n=prompt("新名稱",g.name);
+          if(n&&n.trim()){ await updateDoc(doc(db,"tabs",tabId,"groups",g.id),{name:n.trim()}); loadContent(tabId); }
+      }},
+      { label:"刪除分組", danger:true, fn: async ()=>{
+          if(confirm("刪除分組「"+g.name+"」？")){
+            await deleteDoc(doc(db,"tabs",tabId,"groups",g.id)); loadContent(tabId);
           }
-        }
-      },
-      { label:"刪除分組", danger:true, action: async () => {
-          if (confirm("刪除分組「"+g.name+"」？")) {
-            await deleteDoc(doc(db,"tabs",tabId,"groups",g.id));
-            loadContent(tabId);
-          }
-        }
-      }
+      }},
     ]);
+    hdr.appendChild(lbl); hdr.appendChild(cnt); section.appendChild(hdr);
 
-    header.appendChild(label);
-    section.appendChild(header);
-
-    const linksRow = document.createElement("div");
-    linksRow.className = "links";
+    // Cards
+    const grid = document.createElement("div"); grid.className="card-grid";
 
     g.links.forEach(lk => {
-      const pill = document.createElement("a");
-      pill.className = "link-pill";
-      pill.href = lk.url;
-      pill.target = "_blank";
-      pill.rel = "noopener";
+      const card = document.createElement("a");
+      card.className="card"; card.href=lk.url; card.target="_blank"; card.rel="noopener";
 
-      const dot = document.createElement("div");
-      dot.className = "favicon-dot";
-      dot.style.background = lk.color||"#F1EFE8";
-      dot.style.color = lk.textColor||"#444441";
-      dot.textContent = lk.abbr||"?";
+      const icon = document.createElement("div"); icon.className="card-icon";
+      icon.style.background=lk.color||"#F1EFE8"; icon.style.color=lk.textColor||"#444441";
+      icon.textContent=lk.abbr||"?";
 
-      const name = document.createElement("span");
-      name.className = "link-name";
-      name.textContent = lk.name;
+      const name = document.createElement("div"); name.className="card-name"; name.textContent=lk.name;
+      const dm   = document.createElement("div"); dm.className="card-domain"; dm.textContent=domain(lk.url);
 
-      pill.appendChild(dot);
-      pill.appendChild(name);
+      card.appendChild(icon); card.appendChild(name); card.appendChild(dm);
 
-      attachCtxMenu(pill, () => [
-        { label:"編輯", action: () => openLinkModal(tabId, g.id, lk) },
-        { label:"刪除", danger:true, action: async () => {
-            if (confirm("刪除「"+lk.name+"」？")) {
+      bindCtx(card, ()=>[
+        { label:"編輯", fn: ()=>openLinkModal(tabId,g.id,lk) },
+        { label:"刪除", danger:true, fn: async ()=>{
+            if(confirm("刪除「"+lk.name+"」？")){
               await deleteDoc(doc(db,"tabs",tabId,"groups",g.id,"links",lk.id));
               loadContent(tabId);
             }
-          }
-        }
+        }},
       ]);
-
-      linksRow.appendChild(pill);
+      grid.appendChild(card);
     });
 
-    const addBtn = document.createElement("button");
-    addBtn.className = "add-pill";
-    addBtn.textContent = "+ 新增";
-    addBtn.addEventListener("click", () => openLinkModal(tabId, g.id, null));
-    linksRow.appendChild(addBtn);
+    // Add card button
+    const addWrap = document.createElement("div"); addWrap.className="card-add";
+    const addInner = document.createElement("div"); addInner.className="card-add-inner";
+    addInner.innerHTML='<div class="card-add-icon">+</div><div class="card-add-label">新增</div>';
+    addWrap.appendChild(addInner);
+    addWrap.addEventListener("click",()=>openLinkModal(tabId,g.id,null));
+    grid.appendChild(addWrap);
 
-    section.appendChild(linksRow);
+    section.appendChild(grid);
+
     if (gi < groups.length-1) {
-      const sep = document.createElement("div"); sep.className="sep"; section.appendChild(sep);
+      const sep=document.createElement("div"); sep.className="sep"; section.appendChild(sep);
     }
     c.appendChild(section);
   });
 }
 
 // ── MODALS ──
-function openModal(id)  { document.getElementById(id).classList.add("open"); }
-function closeModal(id) { document.getElementById(id).classList.remove("open"); }
+const openModal  = id => document.getElementById(id).classList.add("open");
+const closeModal = id => document.getElementById(id).classList.remove("open");
 
-document.getElementById("mt-cancel").addEventListener("click", () => closeModal("modal-tab"));
-document.getElementById("mt-save").addEventListener("click", async () => {
-  const name = document.getElementById("mt-name").value.trim();
-  if (!name) return;
-  await addDoc(collection(db,"tabs"), {name, order:tabs.length});
-  document.getElementById("mt-name").value = "";
+// Tab
+document.getElementById("mt-cancel").addEventListener("click",()=>closeModal("modal-tab"));
+document.getElementById("mt-save").addEventListener("click", async ()=>{
+  const n=document.getElementById("mt-name").value.trim(); if(!n) return;
+  await addDoc(collection(db,"tabs"),{name:n,order:tabs.length});
+  document.getElementById("mt-name").value="";
   closeModal("modal-tab");
   await loadAll();
-  activeTabId = tabs[tabs.length-1]?.id;
-  renderTabs();
+  activeTabId=tabs[tabs.length-1]?.id; renderTabs();
   showToast("分頁已新增");
 });
 
-document.getElementById("btn-add-group").addEventListener("click", () => {
-  if (!activeTabId) { showToast("請先新增分頁"); return; }
-  pendingGroupTabId = activeTabId;
-  openModal("modal-group");
+// Group
+document.getElementById("btn-add-group").addEventListener("click",()=>{
+  if(!activeTabId){showToast("請先新增分頁");return;}
+  pTabId=activeTabId; openModal("modal-group");
 });
-document.getElementById("mg-cancel").addEventListener("click", () => closeModal("modal-group"));
-document.getElementById("mg-save").addEventListener("click", async () => {
-  const name = document.getElementById("mg-name").value.trim();
-  if (!name || !pendingGroupTabId) return;
-  const snap = await getDocs(collection(db,"tabs",pendingGroupTabId,"groups"));
-  await addDoc(collection(db,"tabs",pendingGroupTabId,"groups"), {name, order:snap.size});
-  document.getElementById("mg-name").value = "";
-  closeModal("modal-group");
-  loadContent(pendingGroupTabId);
-  showToast("分組已新增");
+document.getElementById("mg-cancel").addEventListener("click",()=>closeModal("modal-group"));
+document.getElementById("mg-save").addEventListener("click", async ()=>{
+  const n=document.getElementById("mg-name").value.trim(); if(!n||!pTabId) return;
+  const s=await getDocs(collection(db,"tabs",pTabId,"groups"));
+  await addDoc(collection(db,"tabs",pTabId,"groups"),{name:n,order:s.size});
+  document.getElementById("mg-name").value="";
+  closeModal("modal-group"); loadContent(pTabId); showToast("分組已新增");
 });
 
-function buildColorPicker() {
-  const row = document.getElementById("color-picker");
-  row.innerHTML = "";
-  COLORS.forEach(c => {
-    const sw = document.createElement("div");
-    sw.className = "color-swatch" + (c.bg===selectedColor.bg ? " selected" : "");
-    sw.style.background = c.bg;
-    sw.style.borderColor = c.bg===selectedColor.bg ? c.text : "transparent";
-    sw.addEventListener("click", () => { selectedColor=c; buildColorPicker(); });
+// Link
+function buildPicker() {
+  const row=document.getElementById("color-picker"); row.innerHTML="";
+  COLORS.forEach(c=>{
+    const sw=document.createElement("div");
+    sw.className="color-swatch"+(c.bg===selColor.bg?" selected":"");
+    sw.style.background=c.bg; sw.style.borderColor=c.bg===selColor.bg?c.tc:"transparent";
+    sw.addEventListener("click",()=>{ selColor=c; buildPicker(); });
     row.appendChild(sw);
   });
 }
-
-function openLinkModal(tabId, groupId, link) {
-  pendingLinkGroupId = groupId;
-  pendingGroupTabId  = tabId;
-  pendingLinkId      = link ? link.id : null;
-  document.getElementById("modal-link-title").textContent = link ? "編輯連結" : "新增連結";
-  document.getElementById("ml-name").value  = link ? link.name  : "";
-  document.getElementById("ml-url").value   = link ? link.url   : "";
-  document.getElementById("ml-abbr").value  = link ? link.abbr  : "";
-  selectedColor = link ? (COLORS.find(c=>c.bg===link.color)||COLORS[0]) : COLORS[0];
-  buildColorPicker();
-  openModal("modal-link");
+function openLinkModal(tabId,groupId,link){
+  pTabId=tabId; pGroupId=groupId; pLinkId=link?link.id:null;
+  document.getElementById("modal-link-title").textContent=link?"編輯連結":"新增連結";
+  document.getElementById("ml-name").value=link?link.name:"";
+  document.getElementById("ml-url").value=link?link.url:"";
+  document.getElementById("ml-abbr").value=link?link.abbr:"";
+  selColor=link?(COLORS.find(c=>c.bg===link.color)||COLORS[0]):COLORS[0];
+  buildPicker(); openModal("modal-link");
 }
-
-document.getElementById("ml-cancel").addEventListener("click", () => closeModal("modal-link"));
-document.getElementById("ml-save").addEventListener("click", async () => {
-  const name = document.getElementById("ml-name").value.trim();
-  const url  = document.getElementById("ml-url").value.trim();
-  const abbr = document.getElementById("ml-abbr").value.trim();
-  if (!name || !url) return;
-  const data = { name, url, abbr:abbr||name.slice(0,2).toUpperCase(), color:selectedColor.bg, textColor:selectedColor.text };
-  const base = collection(db,"tabs",pendingGroupTabId,"groups",pendingLinkGroupId,"links");
-  if (pendingLinkId) {
-    await updateDoc(doc(db,"tabs",pendingGroupTabId,"groups",pendingLinkGroupId,"links",pendingLinkId), data);
-  } else {
-    const snap = await getDocs(base);
-    await addDoc(base, {...data, order:snap.size});
-  }
-  closeModal("modal-link");
-  loadContent(pendingGroupTabId);
-  showToast(pendingLinkId ? "已更新" : "連結已新增");
+document.getElementById("ml-cancel").addEventListener("click",()=>closeModal("modal-link"));
+document.getElementById("ml-save").addEventListener("click", async ()=>{
+  const name=document.getElementById("ml-name").value.trim();
+  const url=document.getElementById("ml-url").value.trim();
+  const abbr=document.getElementById("ml-abbr").value.trim();
+  if(!name||!url) return;
+  const data={name,url,abbr:abbr||name.slice(0,2).toUpperCase(),color:selColor.bg,textColor:selColor.tc};
+  const base=collection(db,"tabs",pTabId,"groups",pGroupId,"links");
+  if(pLinkId) await updateDoc(doc(db,"tabs",pTabId,"groups",pGroupId,"links",pLinkId),data);
+  else { const s=await getDocs(base); await addDoc(base,{...data,order:s.size}); }
+  closeModal("modal-link"); loadContent(pTabId); showToast(pLinkId?"已更新":"連結已新增");
 });
 
-["modal-link","modal-tab","modal-group"].forEach(id => {
-  document.getElementById(id).addEventListener("mousedown", e => {
-    if (e.target===document.getElementById(id)) closeModal(id);
+// Close modals on backdrop click
+["modal-link","modal-tab","modal-group"].forEach(id=>{
+  document.getElementById(id).addEventListener("mousedown",e=>{
+    if(e.target===document.getElementById(id)) closeModal(id);
   });
 });
 
-function showToast(msg) {
-  const t = document.getElementById("toast");
-  t.textContent = msg; t.classList.add("show");
-  setTimeout(() => t.classList.remove("show"), 2000);
+// ── TOAST ──
+function showToast(msg){
+  const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),2000);
 }
 </script>
 </body>
