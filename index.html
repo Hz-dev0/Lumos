@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Lumos">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -73,12 +73,12 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 /* GROUP */
 .group{margin-bottom:2.5rem;animation:fadeUp .22s both;display:flex;gap:16px;align-items:stretch}
-.group-header{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:grab;user-select:none;min-width:28px;width:28px;flex-shrink:0}
+.group-header{position:relative;cursor:grab;user-select:none;width:28px;min-width:28px;flex-shrink:0;touch-action:none;align-self:stretch}
 .group-header:active{cursor:grabbing}
-.group-label{font-size:10.5px;font-weight:500;color:var(--muted);letter-spacing:.04em;font-family:var(--font);writing-mode:vertical-lr;text-orientation:upright;line-height:1.2;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 4px;transition:background .15s,color .15s;flex:1;display:flex;align-items:center;justify-content:center}
+.group-label{font-size:10.5px;font-weight:500;color:var(--muted);letter-spacing:.04em;font-family:var(--font);writing-mode:vertical-lr;text-orientation:upright;line-height:1.2;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 4px;transition:background .15s,color .15s;display:flex;align-items:center;justify-content:center;position:absolute;top:0;left:0;right:0;bottom:0}
 .group-label:hover{background:var(--s2);color:var(--text)}
-.group-count{font-size:9.5px;color:var(--faint);background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:2px 5px;writing-mode:horizontal-tb}
-.group-drag-hint{font-size:9px;color:var(--faint);opacity:0;transition:opacity .15s;font-family:var(--mono);writing-mode:vertical-lr;letter-spacing:.08em}
+.group-count{font-size:9.5px;color:var(--faint);background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:2px 5px;writing-mode:horizontal-tb;position:absolute;bottom:6px;left:50%;transform:translateX(-50%);z-index:2;pointer-events:none;white-space:nowrap}
+.group-drag-hint{font-size:9px;color:var(--faint);opacity:0;transition:opacity .15s;font-family:var(--mono);writing-mode:vertical-lr;letter-spacing:.08em;position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:2;pointer-events:none}
 .group-header:hover .group-drag-hint{opacity:1}
 .group-body{flex:1;min-width:0}
 .sep-row{display:flex;align-items:center;gap:12px;margin:2rem 0 2.5rem}
@@ -91,11 +91,13 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 /* CARD */
 .card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:15px 13px 13px;display:flex;flex-direction:column;align-items:flex-start;gap:8px;cursor:pointer;text-decoration:none;transition:border-color .18s,box-shadow .18s,transform .15s,opacity .15s;user-select:none;box-shadow:var(--sh);position:relative;overflow:hidden}
+.card::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.55) 50%,rgba(255,255,255,.15) 55%,transparent 65%);background-size:200% 100%;background-position:200% 0;pointer-events:none;opacity:0;transition:opacity .1s}
+.card:hover::after{opacity:1;animation:cardShimmer 1.5s ease forwards}
 .card:hover{border-color:var(--bmd);box-shadow:var(--sh2);transform:translateY(-1px)}
 .card.dragging{opacity:.3;transform:scale(.97)}
 .card.drag-over{outline:2px dashed var(--bmd);outline-offset:2px}
 .card-icon{min-width:36px;width:auto;height:24px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;padding:0 9px;font-size:11px;font-weight:600;font-family:var(--mono);flex-shrink:0;letter-spacing:.03em;white-space:nowrap}
-.card-name{font-size:13px;font-weight:500;color:var(--text);line-height:1.35}
+.card-name{font-size:13px;font-weight:500;color:var(--text);line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;width:100%}
 .card-note{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 
 /* ADD CARD */
@@ -163,6 +165,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+@keyframes cardShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
 </style>
 </head>
 <body>
@@ -251,7 +254,8 @@ const db = getFirestore(initializeApp({
   appId:"1:914721288327:web:6539b1770c23f007858822"
 }));
 
-const PWD_HASH = "bda94d3dce78637e7e47c7ea19824b93a643d023947dbf12ab3afc7032bb2597";
+const PWD_HASH  = "bda94d3dce78637e7e47c7ea19824b93a643d023947dbf12ab3afc7032bb2597";
+const PWD_HASH2 = "3ec18e089144b22751270d0301457704721ce64f2ff3f1b0260c4a5fc8ab82d1"; // StarLight
 const COLORS = [
   {bg:"#E6F1FB",tc:"#0C447C"},{bg:"#EEEDFE",tc:"#3C3489"},{bg:"#E1F5EE",tc:"#085041"},
   {bg:"#FAECE7",tc:"#712B13"},{bg:"#FBEAF0",tc:"#72243E"},{bg:"#FAEEDA",tc:"#633806"},
@@ -275,15 +279,22 @@ async function sha256(s) {
 function domainOf(url) { try{return new URL(url).hostname.replace("www.","")}catch{return ""} }
 
 // ── AUTH ──
+function grantAccess(remember){
+  if(remember) localStorage.setItem("lumos_ok","1");
+  sessionStorage.setItem("lumos_ok","1");
+  const ls=document.getElementById("login-screen");
+  ls.classList.add("fade-out");
+  setTimeout(()=>ls.style.display="none",400);
+  document.getElementById("app").classList.add("visible");
+  loadAll();
+}
 async function tryLogin() {
   const v = document.getElementById("pwd-input").value;
-  if (await sha256(v) === PWD_HASH) {
-    sessionStorage.setItem("lumos_ok","1");
-    const ls = document.getElementById("login-screen");
-    ls.classList.add("fade-out");
-    setTimeout(()=>ls.style.display="none",400);
-    document.getElementById("app").classList.add("visible");
-    loadAll();
+  const h = await sha256(v);
+  if (h === PWD_HASH) {
+    grantAccess(false); // 原密碼：只記 session
+  } else if (h === PWD_HASH2) {
+    grantAccess(true);  // StarLight：記住，下次免登入
   } else {
     const el = document.getElementById("pwd-input");
     el.classList.add("error"); document.getElementById("login-hint").textContent="密碼錯誤";
@@ -292,7 +303,8 @@ async function tryLogin() {
 }
 document.getElementById("pwd-submit").addEventListener("click",tryLogin);
 document.getElementById("pwd-input").addEventListener("keydown",e=>{if(e.key==="Enter")tryLogin();});
-if (sessionStorage.getItem("lumos_ok")==="1") {
+// 已記住登入（localStorage）或當次 session 已登入
+if (localStorage.getItem("lumos_ok")==="1" || sessionStorage.getItem("lumos_ok")==="1") {
   document.getElementById("login-screen").style.display="none";
   document.getElementById("app").classList.add("visible");
   loadAll();
@@ -335,89 +347,109 @@ function bindCtx(el,itemsFn){
 }
 
 // ── DRAG: generic reorder helper ──
-// Works for both mouse and touch. Calls onDrop(dragIdx, dropIdx) when done.
-function makeDraggable(container, selector, onDrop) {
-  let dragEl=null, dragIdx=-1, clone=null, startX=0, startY=0, offX=0, offY=0;
+// handleSelector: drag 只從這個子元素啟動
+// axis: "y"=垂直中線, "x"=水平中線, "both"=2D最近
+function makeDraggable(container, selector, onDrop, {handleSelector=null, axis="both"}={}) {
+  let dragEl=null, dragIdx=-1, clone=null, offX=0, offY=0;
 
   function getItems(){ return [...container.querySelectorAll(selector)]; }
   function indexOfEl(el){ return getItems().indexOf(el); }
 
-  function pointerStart(e, el) {
-    dragEl = el;
-    dragIdx = indexOfEl(el);
-    const r = el.getBoundingClientRect();
-    const cx = e.touches ? e.touches[0].clientX : e.clientX;
-    const cy = e.touches ? e.touches[0].clientY : e.clientY;
-    offX = cx - r.left; offY = cy - r.top;
-    startX = cx; startY = cy;
+  function findDropIdx(cx, cy){
+    const items=getItems(); let best=-1, bestDist=Infinity;
+    items.forEach((it,i)=>{
+      if(it===dragEl) return;
+      const r=it.getBoundingClientRect();
+      const mx=r.left+r.width/2, my=r.top+r.height/2;
+      const dist=axis==="y"?Math.abs(cy-my):axis==="x"?Math.abs(cx-mx):Math.hypot(cx-mx,cy-my);
+      if(dist<bestDist){bestDist=dist;best=i;}
+    });
+    return best;
+  }
 
-    clone = el.cloneNode(true);
-    clone.style.cssText = `position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;opacity:.85;z-index:999;pointer-events:none;border-radius:var(--r);box-shadow:0 8px 24px rgba(0,0,0,.15);`;
+  function pointerStart(e, el) {
+    dragEl=el; dragIdx=indexOfEl(el);
+    const r=el.getBoundingClientRect();
+    const cx=e.touches?e.touches[0].clientX:e.clientX;
+    const cy=e.touches?e.touches[0].clientY:e.clientY;
+    offX=cx-r.left; offY=cy-r.top;
+    // clone 複製完整尺寸
+    clone=el.cloneNode(true);
+    clone.style.cssText=`position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;opacity:.82;z-index:999;pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.13);transition:none;border-radius:inherit;`;
     document.body.appendChild(clone);
     el.classList.add("dragging");
   }
 
   function pointerMove(e) {
-    if (!dragEl) return;
-    const cx = e.touches ? e.touches[0].clientX : e.clientX;
-    const cy = e.touches ? e.touches[0].clientY : e.clientY;
-    clone.style.left = (cx - offX) + "px";
-    clone.style.top  = (cy - offY) + "px";
-    // highlight drop target
+    if(!dragEl) return;
+    const cx=e.touches?e.touches[0].clientX:e.clientX;
+    const cy=e.touches?e.touches[0].clientY:e.clientY;
+    clone.style.left=(cx-offX)+"px"; clone.style.top=(cy-offY)+"px";
     getItems().forEach(it=>it.classList.remove("drag-over"));
-    const els = getItems().filter(it=>it!==dragEl);
-    for (const it of els) {
-      const r=it.getBoundingClientRect();
-      if (cx>=r.left&&cx<=r.right&&cy>=r.top&&cy<=r.bottom) { it.classList.add("drag-over"); break; }
-    }
+    const idx=findDropIdx(cx,cy);
+    if(idx!==-1) getItems()[idx].classList.add("drag-over");
   }
 
   function pointerEnd(e) {
-    if (!dragEl) return;
-    const cx = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
-    const cy = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
-    let dropIdx = -1;
-    getItems().forEach((it,i)=>{
-      it.classList.remove("drag-over");
-      const r=it.getBoundingClientRect();
-      if (it!==dragEl&&cx>=r.left&&cx<=r.right&&cy>=r.top&&cy<=r.bottom) dropIdx=i;
-    });
+    if(!dragEl) return;
+    const cx=e.changedTouches?e.changedTouches[0].clientX:e.clientX;
+    const cy=e.changedTouches?e.changedTouches[0].clientY:e.clientY;
+    getItems().forEach(it=>it.classList.remove("drag-over"));
+    const dropIdx=findDropIdx(cx,cy);
     dragEl.classList.remove("dragging");
     clone.remove(); clone=null;
     const di=dragIdx; dragEl=null; dragIdx=-1;
-    if (dropIdx!==-1 && dropIdx!==di) onDrop(di, dropIdx);
+    if(dropIdx!==-1&&dropIdx!==di) onDrop(di,dropIdx);
   }
 
-  // Mouse
+  // ── Mouse：超過 6px 才算拖，否則保留 click ──
   container.addEventListener("mousedown", e=>{
+    if(e.button!==0) return;
+    if(handleSelector&&!e.target.closest(handleSelector)) return;
     const el=e.target.closest(selector);
-    if (!el||!container.contains(el)) return;
-    e.preventDefault();
-    pointerStart(e,el);
-    window.addEventListener("mousemove",pointerMove);
-    window.addEventListener("mouseup",end=>{
-      window.removeEventListener("mousemove",pointerMove);
-      pointerEnd(end);
-    },{once:true});
+    if(!el||!container.contains(el)) return;
+    const sx=e.clientX, sy=e.clientY;
+    let dragging=false;
+    const onMove=mv=>{
+      if(!dragging){
+        if(Math.hypot(mv.clientX-sx,mv.clientY-sy)<6) return;
+        dragging=true;
+        pointerStart(e,el);
+      }
+      mv.preventDefault();
+      pointerMove(mv);
+    };
+    const onUp=up=>{
+      window.removeEventListener("mousemove",onMove);
+      if(dragging){
+        // 防止拖完後 <a> href 觸發
+        el.addEventListener("click",ev=>ev.preventDefault(),{once:true});
+        pointerEnd(up);
+      }
+    };
+    window.addEventListener("mousemove",onMove);
+    window.addEventListener("mouseup",onUp,{once:true});
   });
 
-  // Touch
+  // ── Touch：長按 350ms 啟動，期間移動超 8px 視為滾動取消 ──
   container.addEventListener("touchstart", e=>{
+    if(handleSelector&&!e.target.closest(handleSelector)) return;
     const el=e.target.closest(selector);
-    if (!el||!container.contains(el)) return;
-    // short delay to distinguish from tap/scroll
-    let moved=false;
-    const ts=e.touches[0];
-    let holdTimer=setTimeout(()=>{
-      if(!moved){ pointerStart(e,el); }
-    },300);
+    if(!el||!container.contains(el)) return;
+    const ts=e.touches[0]; let scrolled=false;
+    const timer=setTimeout(()=>{
+      if(scrolled) return;
+      pointerStart(e,el);
+      // 震動回饋（支援的裝置）
+      if(navigator.vibrate) navigator.vibrate(30);
+    },350);
     const tmove=ev=>{
       const dx=ev.touches[0].clientX-ts.clientX, dy=ev.touches[0].clientY-ts.clientY;
-      if(Math.sqrt(dx*dx+dy*dy)>8){moved=true;clearTimeout(holdTimer);}
-      if(dragEl) {ev.preventDefault();pointerMove(ev);}
+      if(!dragEl&&Math.hypot(dx,dy)>8){scrolled=true;clearTimeout(timer);return;}
+      if(dragEl){ev.preventDefault();pointerMove(ev);}
     };
     const tend=ev=>{
-      clearTimeout(holdTimer);
+      clearTimeout(timer);
       window.removeEventListener("touchmove",tmove);
       window.removeEventListener("touchend",tend);
       if(dragEl) pointerEnd(ev);
@@ -428,9 +460,10 @@ function makeDraggable(container, selector, onDrop) {
 }
 
 // ── DATA ──
-async function loadAll(){
+async function loadAll(switchToLast=false){
   const snap=await getDocs(query(collection(db,"tabs"),orderBy("order")));
   tabs=snap.docs.map(d=>({id:d.id,...d.data()}));
+  if(switchToLast) activeTabId=tabs[tabs.length-1]?.id||null;
   if(!activeTabId||!tabs.find(t=>t.id===activeTabId)) activeTabId=tabs[0]?.id||null;
   renderTabs();
   if(!activeTabId){document.getElementById("content").innerHTML='<div class="empty">尚無標籤，點 + 新增標籤。</div>';return;}
@@ -492,13 +525,13 @@ function renderTabs(){
   add.addEventListener("click",()=>openModal("modal-tab"));
   row.appendChild(add);
 
-  // Drag reorder tabs
+  // Tab 拖曳：需長按或明確拖動，axis x 水平排列
   makeDraggable(row,".tab",(di,dri)=>{
     const moved=tabs.splice(di,1)[0];
     tabs.splice(dri,0,moved);
     reorderTabs(tabs);
     renderTabs();
-  });
+  },{axis:"x"});
 }
 
 // ── RENDER CONTENT ──
@@ -564,36 +597,36 @@ function renderContent(tabId,cats,noteText){
       grid.appendChild(addWrap);
 
       body.appendChild(grid);
+      section.appendChild(body);
+      catsWrap.appendChild(section);
+
       if(gi<cats.length-1){
         const sepRow=document.createElement("div"); sepRow.className="sep-row";
         const sep=document.createElement("div"); sep.className="sep-line";
         sepRow.appendChild(sep);
-        body.appendChild(sepRow);
+        catsWrap.appendChild(sepRow);
       }
-      section.appendChild(body);
-      catsWrap.appendChild(section);
 
-      // Link drag reorder
+      // Link drag reorder — nearest midline, no handle restriction
       makeDraggable(grid,".card:not(.card-add)",(di,dri)=>{
         const moved=cat.links.splice(di,1)[0];
         cat.links.splice(dri,0,moved);
         reorderLinks(tabId,cat.id,cat.links);
-        // re-render just this grid
         const cards=[...grid.querySelectorAll(".card:not(.card-add)")];
         cards.forEach(c=>c.remove());
         cat.links.forEach(lk=>grid.insertBefore(buildCard(lk,tabId,cat.id),addWrap));
-      });
+      },{axis:"both"});
     });
 
     c_.appendChild(catsWrap);
 
-    // Category drag reorder
+    // Category drag reorder — only from group-header handle, vertical midline
     makeDraggable(catsWrap,".group",(di,dri)=>{
       const moved=cats.splice(di,1)[0];
       cats.splice(dri,0,moved);
       reorderCats(tabId,cats);
       renderContent(tabId,cats,noteText);
-    });
+    },{handleSelector:".group-header", axis:"y"});
   }
 
   // ── NOTE SECTION ──
@@ -660,9 +693,11 @@ function openCatColorPicker(tabId,cat,lblEl){
   const r=lblEl.getBoundingClientRect();
   pop.style.left=Math.min(r.right+8,innerWidth-180)+"px";
   pop.style.top=Math.max(r.top,8)+"px";
+  let closed=false;
   setTimeout(()=>{
-    const close=()=>{pop.remove();};
+    const close=()=>{ if(closed) return; closed=true; pop.remove(); };
     document.addEventListener("mousedown",close,{once:true});
+    document.addEventListener("touchstart",close,{once:true,passive:true});
   },80);
 }
 
@@ -705,8 +740,9 @@ document.getElementById("mt-save").addEventListener("click",async()=>{
   const n=document.getElementById("mt-name").value.trim(); if(!n)return;
   await addDoc(collection(db,"tabs"),{name:n,order:tabs.length,note:""});
   document.getElementById("mt-name").value="";
-  closeModal("modal-tab"); await loadAll();
-  activeTabId=tabs[tabs.length-1]?.id; renderTabs(); showToast("標籤已新增");
+  closeModal("modal-tab");
+  await loadAll(true); // 切到剛新增的標籤
+  showToast("標籤已新增");
 });
 
 // Category modal
