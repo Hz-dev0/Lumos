@@ -68,17 +68,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .group{margin-bottom:2.5rem;animation:fadeUp .22s both;display:flex;gap:16px;align-items:flex-start}
 .group-header{display:flex;flex-direction:column;align-items:center;gap:6px;cursor:grab;user-select:none;padding-top:4px;min-width:28px;width:28px;flex-shrink:0}
 .group-header:active{cursor:grabbing}
-.group-label {
-  font-size: 12px;             /* 稍微放大一點點，原本 10.5px 太精細了 */
-  font-weight: 500;
-  color: var(--text);          /* 💡 關鍵：把顏色從 --faint 改成 --text（深色） */
-  letter-spacing: .12em;       /* 💡 關鍵：把字距拉開！直排字拉開後，那個「設計感」會爆棚 */
-  font-family: var(--font);
-  writing-mode: vertical-lr;
-  text-orientation: upright;
-  line-height: 1.2;
-}
-  .group-count{font-size:9.5px;color:var(--faint);background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:2px 5px;writing-mode:horizontal-tb}
+.group-label{font-size:10.5px;font-weight:500;color:var(--faint);letter-spacing:.04em;font-family:var(--font);writing-mode:vertical-lr;text-orientation:upright;line-height:1.2}
+.group-count{font-size:9.5px;color:var(--faint);background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:2px 5px;writing-mode:horizontal-tb}
 .group-drag-hint{font-size:8px;color:var(--faint);opacity:0;transition:opacity .15s;font-family:var(--mono);writing-mode:vertical-lr;text-orientation:upright}
 .group-header:hover .group-drag-hint{opacity:1}
 .group-body{flex:1;min-width:0}
