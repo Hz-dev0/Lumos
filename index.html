@@ -480,12 +480,36 @@ function renderTabs() {
   const row = document.getElementById("tab-row");
   row.innerHTML = "";
   tabs.forEach(t => {
-    const el = document.createElement("div");
-    el.className = "tab" + (t.id === activeTabId ? " active" : "");
-    el.textContent = t.name;
-    el.addEventListener("click", () => { activeTabId = t.id; renderTabs(); loadContent(t.id); });
     if (editMode) {
-      el.addEventListener("dblclick", async () => {
+      const wrap = document.createElement("div");
+      wrap.style.cssText = "display:flex;align-items:center;gap:3px;padding-bottom:10px;margin-bottom:-1px;border-bottom:1.5px solid " + (t.id === activeTabId ? "var(--tab-active)" : "transparent");
+
+      const el = document.createElement("div");
+      el.style.cssText = "font-size:13px;color:" + (t.id === activeTabId ? "var(--tab-active)" : "var(--tab-inactive)") + ";cursor:pointer;white-space:nowrap;";
+      el.textContent = t.name;
+      el.addEventListener("click", () => { activeTabId = t.id; renderTabs(); loadContent(t.id); });
+
+      const renBtn = document.createElement("button");
+      renBtn.className = "small-btn";
+      renBtn.title = "改名";
+      renBtn.textContent = "✎";
+      renBtn.style.cssText = "font-size:12px;padding:1px 5px;";
+      renBtn.addEventListener("click", async e => {
+        e.stopPropagation();
+        const name = prompt("新分頁名稱", t.name);
+        if (name && name.trim()) {
+          await updateDoc(doc(db, "tabs", t.id), { name: name.trim() });
+          await loadAll();
+        }
+      });
+
+      const delBtn = document.createElement("button");
+      delBtn.className = "small-btn";
+      delBtn.title = "刪除";
+      delBtn.textContent = "×";
+      delBtn.style.cssText = "font-size:14px;padding:1px 5px;color:#e24b4a;";
+      delBtn.addEventListener("click", async e => {
+        e.stopPropagation();
         if (confirm(`刪除分頁「${t.name}」？（分頁內所有資料都會刪除）`)) {
           await deleteDoc(doc(db, "tabs", t.id));
           tabs = tabs.filter(x => x.id !== t.id);
@@ -493,8 +517,18 @@ function renderTabs() {
           await loadAll();
         }
       });
+
+      wrap.appendChild(el);
+      wrap.appendChild(renBtn);
+      wrap.appendChild(delBtn);
+      row.appendChild(wrap);
+    } else {
+      const el = document.createElement("div");
+      el.className = "tab" + (t.id === activeTabId ? " active" : "");
+      el.textContent = t.name;
+      el.addEventListener("click", () => { activeTabId = t.id; renderTabs(); loadContent(t.id); });
+      row.appendChild(el);
     }
-    row.appendChild(el);
   });
   const addTab = document.createElement("div");
   addTab.className = "tab-add";
