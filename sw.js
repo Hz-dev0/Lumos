@@ -1,7 +1,7 @@
 const CACHE = 'lumos-v2';
 const STATIC = [
   './manifest.json',
-  './icon-192.png',
+  './icon.png',
   'https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap',
 ];
 
