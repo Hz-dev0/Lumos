@@ -91,7 +91,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 /* CARD */
 .card{background:var(--surface);border:1.5px solid var(--border);border-radius:var(--r);padding:15px 13px 13px;display:flex;flex-direction:column;align-items:flex-start;gap:8px;cursor:pointer;text-decoration:none;transition:border-color .18s,box-shadow .18s,transform .15s,opacity .15s;user-select:none;box-shadow:var(--sh);position:relative;overflow:hidden}
 .card::after{content:"";position:absolute;inset:0;background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.55) 50%,rgba(255,255,255,.15) 55%,transparent 65%);background-size:200% 100%;background-position:200% 0;pointer-events:none;opacity:0;transition:opacity .1s}
-.card:hover::after{opacity:1;animation:cardShimmer 1.5s ease forwards}
+.card:hover::after{opacity:1;animation:cardShimmer 1.5s ease}
 .card:hover{border-color:var(--bmd);box-shadow:var(--sh2);transform:translateY(-1px)}
 .card.dragging{opacity:.3;transform:scale(.97)}
 .card.drag-over{outline:2px dashed var(--bmd);outline-offset:2px}
@@ -569,13 +569,16 @@ function renderTabs(){
   add.addEventListener("click",()=>openModal("modal-tab"));
   row.appendChild(add);
 
-  // Tab 拖曳：需長按或明確拖動，axis x 水平排列
-  makeDraggable(row,".tab",(di,dri)=>{
-    const moved=tabs.splice(di,1)[0];
-    tabs.splice(dri,0,moved);
-    reorderTabs(tabs);
-    renderTabs();
-  },{axis:"x"});
+  // Tab 拖曳：只在第一次綁定，避免重複綁定導致狀態錯亂
+  if(!row._dragBound){
+    row._dragBound=true;
+    makeDraggable(row,".tab",(di,dri)=>{
+      const moved=tabs.splice(di,1)[0];
+      tabs.splice(dri,0,moved);
+      reorderTabs(tabs);
+      renderTabs();
+    },{axis:"x"});
+  }
 }
 
 // ── RENDER CONTENT ──
