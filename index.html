@@ -342,8 +342,10 @@ async function tryLogin() {
     grantAccess(true);  // StarLight：記住，下次免登入
   } else {
     const el = document.getElementById("pwd-input");
-    el.classList.add("error"); document.getElementById("login-hint").textContent="密碼錯誤";
-    setTimeout(()=>{el.classList.remove("error");el.value="";},600);
+    el.classList.add("error");
+    document.getElementById("login-hint").textContent="密碼錯誤";
+    console.log("[Lumos] input hash:", h, "\nPWD_HASH:", PWD_HASH, "\nPWD_HASH2:", PWD_HASH2);
+    setTimeout(()=>{el.classList.remove("error");el.value="";document.getElementById("login-hint").textContent="";},800);
   }
 }
 document.getElementById("pwd-submit").addEventListener("click",tryLogin);
