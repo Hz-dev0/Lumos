@@ -336,6 +336,12 @@ function grantAccess(remember){
 async function tryLogin() {
   const v = document.getElementById("pwd-input").value;
   const h = await sha256(v);
+  console.log("[DEBUG] input:", JSON.stringify(v));
+  console.log("[DEBUG] hash:", h);
+  console.log("[DEBUG] PWD_HASH:", PWD_HASH);
+  console.log("[DEBUG] PWD_HASH2:", PWD_HASH2);
+  console.log("[DEBUG] match PWD_HASH:", h === PWD_HASH);
+  console.log("[DEBUG] match PWD_HASH2:", h === PWD_HASH2);
   if (h === PWD_HASH) {
     grantAccess(false); // 原密碼：只記 session
   } else if (h === PWD_HASH2) {
