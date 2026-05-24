@@ -73,11 +73,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 /* GROUP */
 .group{margin-bottom:2.5rem;animation:fadeUp .22s both;display:flex;gap:16px;align-items:stretch}
-.group-header{position:relative;cursor:grab;user-select:none;width:28px;min-width:28px;flex-shrink:0;touch-action:none;align-self:stretch}
+.group-header{position:relative;cursor:grab;user-select:none;width:20px;min-width:20px;flex-shrink:0;touch-action:none;align-self:stretch}
 .group-header:active{cursor:grabbing}
-.group-label{font-size:10.5px;font-weight:500;color:var(--muted);letter-spacing:.04em;font-family:var(--font);writing-mode:vertical-lr;text-orientation:upright;line-height:1.2;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:6px 4px;transition:background .15s,color .15s;display:flex;align-items:center;justify-content:center;position:absolute;top:0;left:0;right:0;bottom:0}
+.group-label{font-size:9.5px;font-weight:500;color:var(--muted);letter-spacing:.04em;font-family:var(--font);writing-mode:vertical-lr;text-orientation:upright;line-height:1.2;background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:6px 3px;transition:background .15s,color .15s;display:flex;align-items:center;justify-content:center;position:absolute;top:0;left:0;right:0;bottom:0}
 .group-label:hover{background:var(--s2);color:var(--text)}
-.group-count{font-size:9.5px;color:var(--faint);background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:2px 5px;writing-mode:horizontal-tb;position:absolute;bottom:6px;left:50%;transform:translateX(-50%);z-index:2;pointer-events:none;white-space:nowrap}
 .group-drag-hint{font-size:9px;color:var(--faint);opacity:0;transition:opacity .15s;font-family:var(--mono);writing-mode:vertical-lr;letter-spacing:.08em;position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:2;pointer-events:none}
 .group-header:hover .group-drag-hint{opacity:1}
 .group-body{flex:1;min-width:0}
@@ -137,6 +136,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .btn-cancel:hover{background:var(--s2)}
 .btn-save{padding:9px 18px;border-radius:9px;border:none;background:var(--accent);color:#fff;font-size:13px;cursor:pointer;font-family:var(--font);transition:opacity .15s}
 .btn-save:hover{opacity:.8}
+.btn-delete{padding:9px 18px;border-radius:9px;border:1.5px solid rgba(192,57,43,.25);background:none;font-size:13px;cursor:pointer;color:#c0392b;font-family:var(--font);transition:background .15s,border-color .15s}
+.btn-delete:hover{background:#fdf0ef;border-color:rgba(192,57,43,.45)}
 
 /* COLOR PICKER */
 .color-row{display:flex;gap:7px;flex-wrap:wrap;margin-top:8px}
@@ -166,6 +167,20 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 @keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 @keyframes cardShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+@keyframes logoPulse{0%,100%{opacity:.45;text-shadow:none}50%{opacity:.75;text-shadow:0 0 18px rgba(255,248,220,.6),0 0 36px rgba(255,240,180,.25)}}
+@keyframes orbFloat{0%,100%{transform:translateY(0) scale(1);opacity:.55}50%{transform:translateY(-18px) scale(1.07);opacity:.75}}
+
+/* logo pulse */
+.logo{font-family:var(--mono);font-size:13px;letter-spacing:.2em;color:var(--faint);animation:logoPulse 4s ease-in-out infinite}
+
+/* card glow on hover */
+.card::before{content:"";position:absolute;inset:-1px;border-radius:calc(var(--r) + 1px);background:radial-gradient(circle at var(--mx,50%) var(--my,50%),rgba(255,245,200,.22) 0%,transparent 65%);opacity:0;transition:opacity .3s;pointer-events:none;z-index:0}
+.card:hover::before{opacity:1}
+.card>*{position:relative;z-index:1}
+
+/* orb floating light behind topbar logo */
+.logo-wrap{position:relative;display:inline-block}
+.logo-orb{position:absolute;width:60px;height:60px;border-radius:50%;background:radial-gradient(circle,rgba(255,245,180,.35) 0%,transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;animation:orbFloat 5s ease-in-out infinite;filter:blur(6px)}
 </style>
 </head>
 <body>
@@ -183,7 +198,10 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 
 <div id="app">
   <div class="topbar">
-    <div class="logo">LUMOS</div>
+    <div class="logo-wrap">
+      <div class="logo-orb"></div>
+      <div class="logo">LUMOS</div>
+    </div>
     <div class="topbar-right">
       <div class="tab-row" id="tab-row"></div>
     </div>
@@ -208,6 +226,8 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <label>顏色</label>
     <div class="color-row" id="color-picker"></div>
     <div class="modal-actions">
+      <button class="btn-delete" id="ml-delete" style="display:none">刪除</button>
+      <div style="flex:1"></div>
       <button class="btn-cancel" id="ml-cancel">取消</button>
       <button class="btn-save" id="ml-save">儲存</button>
     </div>
@@ -234,6 +254,31 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
     <div class="modal-actions">
       <button class="btn-cancel" id="mc-cancel">取消</button>
       <button class="btn-save" id="mc-save">新增</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: rename -->
+<div class="modal-backdrop" id="modal-rename">
+  <div class="modal">
+    <h3 id="mr-title">更名</h3>
+    <label id="mr-label">名稱</label>
+    <input type="text" id="mr-input"/>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="mr-cancel">取消</button>
+      <button class="btn-save" id="mr-save">儲存</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: confirm -->
+<div class="modal-backdrop" id="modal-confirm">
+  <div class="modal">
+    <h3 id="mc2-title">確認刪除</h3>
+    <p id="mc2-msg" style="font-size:13px;color:var(--muted);margin-top:4px;line-height:1.6"></p>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="mc2-cancel">取消</button>
+      <button class="btn-save" id="mc2-confirm" style="background:#c0392b">刪除</button>
     </div>
   </div>
 </div>
@@ -504,17 +549,16 @@ function renderTabs(){
     el.textContent=t.name;
     el.addEventListener("click",()=>{activeTabId=t.id;renderTabs();loadContent(t.id);});
     bindCtx(el,()=>[
-      {label:"更名",fn:async()=>{
-        const n=prompt("新標籤名稱",t.name);
-        if(n&&n.trim()){await updateDoc(doc(db,"tabs",t.id),{name:n.trim()});loadAll();}
+      {label:"更名",fn:()=>{
+        showRename("標籤更名","名稱",t.name,async v=>{await updateDoc(doc(db,"tabs",t.id),{name:v});loadAll();});
       }},
-      {label:"刪除標籤",danger:true,fn:async()=>{
-        if(confirm("刪除標籤「"+t.name+"」？所有資料都會刪除。")){
+      {label:"刪除標籤",danger:true,fn:()=>{
+        showConfirm("刪除標籤","刪除標籤「"+t.name+"」？所有資料都會刪除。",async()=>{
           await deleteDoc(doc(db,"tabs",t.id));
           tabs=tabs.filter(x=>x.id!==t.id);
           if(activeTabId===t.id)activeTabId=tabs[0]?.id||null;
           loadAll();
-        }
+        });
       }},
     ]);
     row.appendChild(el);
@@ -542,7 +586,7 @@ function renderContent(tabId,cats,noteText){
   const c_=ci; // alias
 
   if(!cats.length){
-    c_.innerHTML='<div class="empty">此標籤還沒有分類，點右上角 ⊞ 新增。</div>';
+    c_.innerHTML='<div class="empty">此標籤還沒有分類，點上方「+ 新增分類」開始。</div>';
   } else {
     const catsWrap=document.createElement("div");
     catsWrap.id="cats-wrap";
@@ -554,9 +598,8 @@ function renderContent(tabId,cats,noteText){
 
       const hdr=document.createElement("div"); hdr.className="group-header";
       const lbl=document.createElement("div"); lbl.className="group-label"; lbl.textContent=cat.name;
-      const cnt=document.createElement("div"); cnt.className="group-count"; cnt.textContent=cat.links.length;
       const hint=document.createElement("div"); hint.className="group-drag-hint"; hint.textContent="::";
-      hdr.appendChild(lbl); hdr.appendChild(cnt); hdr.appendChild(hint);
+      hdr.appendChild(lbl); hdr.appendChild(hint);
 
       // apply stored label color
       if(cat.labelColor){
@@ -566,15 +609,14 @@ function renderContent(tabId,cats,noteText){
       }
 
       bindCtx(lbl,()=>[
-        {label:"更名",fn:async()=>{
-          const n=prompt("新名稱",cat.name);
-          if(n&&n.trim()){await updateDoc(doc(db,"tabs",tabId,"categories",cat.id),{name:n.trim()});loadContent(tabId);}
+        {label:"更名",fn:()=>{
+          showRename("分類更名","名稱",cat.name,async v=>{await updateDoc(doc(db,"tabs",tabId,"categories",cat.id),{name:v});loadContent(tabId);});
         }},
         {label:"選擇顏色",fn:()=>openCatColorPicker(tabId,cat,lbl)},
-        {label:"刪除分類",danger:true,fn:async()=>{
-          if(confirm("刪除分類「"+cat.name+"」？")){
+        {label:"刪除分類",danger:true,fn:()=>{
+          showConfirm("刪除分類","刪除分類「"+cat.name+"」？",async()=>{
             await deleteDoc(doc(db,"tabs",tabId,"categories",cat.id));loadContent(tabId);
-          }
+          });
         }},
       ]);
 
@@ -660,15 +702,15 @@ function renderContent(tabId,cats,noteText){
 
 // ── CAT COLOR PICKER ──
 const CAT_COLORS=[
-  {bg:"#F0EDE8",tc:"#6B6760"}, // 預設（淡米）
-  {bg:"#E6F1FB",tc:"#0C447C"}, // 藍
-  {bg:"#EEEDFE",tc:"#3C3489"}, // 紫
-  {bg:"#E1F5EE",tc:"#085041"}, // 綠
-  {bg:"#FAECE7",tc:"#712B13"}, // 橘
-  {bg:"#FBEAF0",tc:"#72243E"}, // 粉
-  {bg:"#FAEEDA",tc:"#633806"}, // 黃
-  {bg:"#EAF3DE",tc:"#27500A"}, // 草綠
-  {bg:"#FCEBEB",tc:"#791F1F"}, // 紅
+  {bg:"#E8E4DF",tc:"#6B6358"}, // 沙米（預設）
+  {bg:"#D6DDE8",tc:"#3A4A5C"}, // 霧藍
+  {bg:"#DDD8E8",tc:"#4A3F62"}, // 薰衣草
+  {bg:"#D4E2D8",tc:"#2E4D38"}, // 鼠尾草
+  {bg:"#E8D8D0",tc:"#5C3826"}, // 陶土
+  {bg:"#E8D4DC",tc:"#5C2E42"}, // 玫灰
+  {bg:"#E4DDD0",tc:"#5C4A2A"}, // 麥桿
+  {bg:"#D8E4D8",tc:"#2E4A2E"}, // 苔綠
+  {bg:"#DCE0E8",tc:"#3A3E5C"}, // 藍灰
 ];
 function openCatColorPicker(tabId,cat,lblEl){
   // build small inline popup
@@ -718,21 +760,49 @@ function buildCard(lk,tabId,catId){
     card.appendChild(note);
   }
 
-  bindCtx(card,()=>[
-    {label:"編輯",fn:()=>openLinkModal(tabId,catId,lk)},
-    {label:"刪除",danger:true,fn:async()=>{
-      if(confirm("刪除「"+title+"」？")){
-        await deleteDoc(doc(db,"tabs",tabId,"categories",catId,"links",lk.id));
-        loadContent(tabId);
-      }
-    }},
-  ]);
+  // 右鍵 / 長按 → 直接開編輯
+  card.addEventListener("contextmenu",e=>{e.preventDefault();e.stopPropagation();openLinkModal(tabId,catId,lk);});
+  let _lt=null;
+  card.addEventListener("touchstart",e=>{
+    _lt=setTimeout(()=>{_lt=null;openLinkModal(tabId,catId,lk);},600);
+  },{passive:true});
+  const _lc=()=>{if(_lt){clearTimeout(_lt);_lt=null;}};
+  card.addEventListener("touchend",_lc);card.addEventListener("touchmove",_lc);card.addEventListener("touchcancel",_lc);
   return card;
 }
 
 // ── MODALS ──
 const openModal=id=>document.getElementById(id).classList.add("open");
 const closeModal=id=>document.getElementById(id).classList.remove("open");
+
+// Generic rename dialog
+function showRename(titleText, labelText, currentVal, onSave){
+  document.getElementById("mr-title").textContent=titleText;
+  document.getElementById("mr-label").textContent=labelText;
+  const inp=document.getElementById("mr-input"); inp.value=currentVal;
+  openModal("modal-rename");
+  setTimeout(()=>{inp.focus();inp.select();},120);
+  const save=async()=>{
+    const v=inp.value.trim(); if(!v)return;
+    closeModal("modal-rename"); await onSave(v);
+  };
+  const mrSave=document.getElementById("mr-save");
+  const mrCancel=document.getElementById("mr-cancel");
+  const keyHandler=e=>{if(e.key==="Enter")save();};
+  mrSave.onclick=save;
+  mrCancel.onclick=()=>closeModal("modal-rename");
+  inp.removeEventListener("keydown",inp._kh||null);
+  inp._kh=keyHandler; inp.addEventListener("keydown",keyHandler);
+}
+
+// Generic confirm dialog
+function showConfirm(titleText, msgText, onConfirm){
+  document.getElementById("mc2-title").textContent=titleText;
+  document.getElementById("mc2-msg").textContent=msgText;
+  openModal("modal-confirm");
+  document.getElementById("mc2-confirm").onclick=async()=>{closeModal("modal-confirm");await onConfirm();};
+  document.getElementById("mc2-cancel").onclick=()=>closeModal("modal-confirm");
+}
 
 // Tab modal
 document.getElementById("mt-cancel").addEventListener("click",()=>closeModal("modal-tab"));
@@ -785,6 +855,17 @@ function openLinkModal(tabId,catId,link){
   selColor=link?(COLORS.find(c=>c.bg===link.color)||COLORS[0]):COLORS[0];
   const noteVal=document.getElementById("ml-note").value;
   document.getElementById("ml-note-count").textContent=noteVal.length+" / 10";
+  // 刪除鈕只在編輯模式顯示
+  const delBtn=document.getElementById("ml-delete");
+  delBtn.style.display=link?"":"none";
+  delBtn.onclick=()=>{
+    closeModal("modal-link");
+    const title=link.name||link.rawTitle||"";
+    showConfirm("刪除連結","刪除「"+title+"」？",async()=>{
+      await deleteDoc(doc(db,"tabs",tabId,"categories",catId,"links",link.id));
+      loadContent(tabId);
+    });
+  };
   buildPicker(); openModal("modal-link");
 }
 document.getElementById("ml-cancel").addEventListener("click",()=>closeModal("modal-link"));
@@ -812,6 +893,18 @@ function showToast(msg){
   const t=document.getElementById("toast"); t.textContent=msg; t.classList.add("show");
   setTimeout(()=>t.classList.remove("show"),2000);
 }
+</script>
+<script>
+// ── CARD MOUSE-GLOW TRACKING ──
+document.addEventListener("mousemove",e=>{
+  const card=e.target.closest(".card");
+  if(!card)return;
+  const r=card.getBoundingClientRect();
+  const x=((e.clientX-r.left)/r.width*100).toFixed(1)+"%";
+  const y=((e.clientY-r.top)/r.height*100).toFixed(1)+"%";
+  card.style.setProperty("--mx",x);
+  card.style.setProperty("--my",y);
+},{passive:true});
 </script>
 <script>
 if('serviceWorker' in navigator){
