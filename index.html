@@ -100,7 +100,7 @@ body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:1
 .card-note{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 
 /* CARD EDIT CORNER */
-.card-edit-corner{position:absolute;top:0;right:0;width:28px;height:28px;z-index:5;cursor:pointer}
+.card>.card-edit-corner{position:absolute;top:0;right:0;width:28px;height:28px;z-index:5;cursor:pointer}
 .card-edit-corner::before{content:"";position:absolute;top:0;right:0;width:0;height:0;border-style:solid;border-width:0 28px 28px 0;border-color:transparent var(--border) transparent transparent;transition:border-color .15s}
 .card-edit-corner::after{content:"✎";position:absolute;top:3px;right:2px;font-size:9px;line-height:1;color:var(--muted);opacity:.75;transition:opacity .15s}
 .card-edit-corner:hover::before,.card-edit-corner:active::before{border-color:transparent var(--bmd) transparent transparent}
